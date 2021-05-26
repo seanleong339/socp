@@ -23,12 +23,14 @@ class sampleDAO {
     } = {})
     {
         let query
-         if (filters) {
-            if ("major" in filters) {
-                query = {"major": {$eq: filters["major"]}}
+        if (filters) {
+            if (filters.major == "computer science") {
+                if ("specialisation" in filters) {
+                     query = {"specialisation": {$eq: filters["specialisation"]}}
+                }
             }
-            else if ("specialisation" in filters) {
-                query = {"specialisation": {$eq: filters["specialisation"]}}
+            else if ("major" in filters) {
+                query = {"major": {$eq: filters["major"]}}
             }
         }
 

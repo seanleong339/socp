@@ -8,9 +8,10 @@ class sampleController {
         if (req.query.major) {
             filters.major = req.query.major;
         }
-        else if (req.query.specialisation) {
+        if (req.query.specialisation) {
             filters.specialisation = req.query.specialisation;
         }
+        console.log(filters)
 
         const { planList, totalNumPlans } = await sampleDAO.getPlan({
             filters,

@@ -5,4 +5,6 @@ const router = express.Router()
 
 router.route("/").get(sampleCtrl.apiGetSamples)
 
+router.route("/comment");
+
 module.exports = router

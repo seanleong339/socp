@@ -2,7 +2,6 @@ const { apiGetSamples } = require("./api/sample.controller")
 
 {
     "major": "computer science",
-    "specialisation" : ,
     "y1s1": ["cs1101s", "cs1231s", "math", "math", "ulr"],
     "y1s2": ["cs2030s", "cs2040s", "cs2100", "is1103", "ulr"]
     "y2s1": ["cs2103t", "cs2101", "cs2105", "cs2106", "ulr"]

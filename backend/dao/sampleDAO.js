@@ -1,3 +1,5 @@
+const mongodb = require("mongodb")
+
 let sample
 
 class sampleDAO {
@@ -21,20 +23,24 @@ class sampleDAO {
     } = {})
     {
         let query
-         if (filters) {
-            if ("major" in filters) {
-                query = {"major": {$eq: filters["major"]}}
+        if (filters) {
+            if (filters.major == "computer science") {
+                if ("specialisation" in filters) {
+                     query = {"specialisation": {$eq: filters["specialisation"]}}
+                }
+                else {
+                     query = {"major": {$eq: filters["major"]}}
+                }
             }
-            else if ("specialisation" in filters) {
-                query = {"specialisation": {$eq: filters["specialisation"]}}
+            else if ("major" in filters) {
+                query = {"major": {$eq: filters["major"]}}
             }
         }
 
         let cursor
 
         try {
-            // console.log(sample)
-            cursor = await sample.find()//query)
+            cursor = await sample.find(query);
         } catch (e) {
             console.error(`Unable to issue find command, ${e}`)
             return {planList: []}
@@ -51,6 +57,15 @@ class sampleDAO {
                 `Unable to convert cursor to array or problem counting documents ${e}`
             )
             return {planList: [], totalNumPlans: 0}
+        }
+    }
+
+    static async addPlan(plan) {
+        try {
+            return await sample.insertOne(plan)
+        } catch (e) {
+            console.error(`error inserting the plan ${e}`);
+            return {error: e}
         }
     }
 }

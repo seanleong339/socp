@@ -3,6 +3,6 @@ const userCtrl = require("./user.controller.js")
 
 const router = express.Router();
 
-router.get('/').get(userCtrl.apiSubmitPlan);
+router.route('/').post(userCtrl.apiSubmitPlan);
 
 module.exports = router;

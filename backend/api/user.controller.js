@@ -1,7 +1,6 @@
 const sampleDAO = require("../dao/sampleDAO.js")
 
 class userController {
-
     /**
       * 
       * @param {http request} req 

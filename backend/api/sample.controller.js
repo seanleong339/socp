@@ -26,6 +26,8 @@ class sampleController {
         }
         res.json(response)
     }
+    
+   
 }
 
 module.exports = sampleController;

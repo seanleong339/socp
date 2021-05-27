@@ -28,6 +28,9 @@ class sampleDAO {
                 if ("specialisation" in filters) {
                      query = {"specialisation": {$eq: filters["specialisation"]}}
                 }
+                else {
+                     query = {"major": {$eq: filters["major"]}}
+                }
             }
             else if ("major" in filters) {
                 query = {"major": {$eq: filters["major"]}}
@@ -54,6 +57,15 @@ class sampleDAO {
                 `Unable to convert cursor to array or problem counting documents ${e}`
             )
             return {planList: [], totalNumPlans: 0}
+        }
+    }
+
+    static async addPlan(plan) {
+        try {
+            return await sample.insertOne(plan)
+        } catch (e) {
+            console.error(`error inserting the plan ${e}`);
+            return {error: e}
         }
     }
 }

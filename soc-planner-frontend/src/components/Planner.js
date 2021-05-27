@@ -77,6 +77,7 @@ const Container = styled.div `
 const PaperStyled = styled(Paper) `
   min-height: 150px;
   min-width: 200px;
+  height: 100%;
 `
 const GridStyled = styled(Grid)`
   h3 {

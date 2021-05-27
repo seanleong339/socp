@@ -1,9 +1,14 @@
-import React from 'react'
+import React, { useState } from 'react'
 import styled from 'styled-components'
 import IconButton from '@material-ui/core/IconButton'
 import SearchIcon from '@material-ui/icons/Search'
+import { Link } from 'react-router-dom'
 
 function Header() {
+  
+  const [major, setMajor] = useState("computer science")
+  const [specialisation, setSpecialisation] = useState("")
+
   return (
     <Container>
       <Logo>
@@ -11,20 +16,32 @@ function Header() {
         <h3 style={{fontWeight: 600}}>PLANNER</h3>
       </Logo>
       <HeaderBar>
+        <Caption>
+          <span>FIND A PLAN</span>
+        </Caption>
+        
         <Major>
           <p>MAJOR:</p>
-          <select className="form-select form-select-sm" name="module" id="module">
-            <option value="computer_science">Computer Science</option>
-            <option value="business_analytics">Business Analytics</option>
-            <option value="info_systems">Information Systems</option>
-            <option value="info_security">Information Security</option>
+          <select value={major} onChange={e => setMajor(e.target.value)} className="form-select form-select-sm" name="module" id="module">
+            <option value="computer science">Computer Science</option>
+            <option value="business analytics">Business Analytics</option>
+            <option value="information systems">Information Systems</option>
+            <option value="information security">Information Security</option>
           </select>
         </Major>
         <Specialisation>
           <p>SPECIALISATION:</p>
-          <input type="text" id="specialisation" name="specialisation" autocomplete="off" className="form-control form-control-sm" />
+          <input value={specialisation} onChange={e => setSpecialisation(e.target.value)} type="text" id="specialisation" name="specialisation" autocomplete="off" className="form-control form-control-sm" />
         </Specialisation>
-        <SubmitField>
+        <SubmitField
+        to = {{
+          pathname: '/showplans',
+          state: {
+            major: major,
+            specialisation: specialisation
+          }
+        }}
+        >
           <StyledButton type="submit" name="submit">
             <SearchIcon style={{fill: "white", fontSize: 25}} />
           </StyledButton>
@@ -34,7 +51,7 @@ function Header() {
   )
 }
 
-const SubmitField = styled.div `
+const SubmitField = styled(Link) `
   width: 10%;
   margin-left: 2%;
   display: flex;
@@ -49,21 +66,47 @@ const StyledButton = styled(IconButton) `
 const Container = styled.div `
   height: 60px;
   display: flex;
+  width: 100%;
   align-items: center;
   padding: 0 36px;
   overflow: hidden;
+  position: fixed;
+  top: 0;
+  background: #063537;
+  z-index: 1;
 `
 
 const HeaderBar = styled.form `
-  width: 700px;
+  width: 850px;
   display: flex;
   align-items: center;
   margin-left: auto;
+
+  
 `
+const Caption = styled.div `
+  align-items: center;
+  margin-right: 5%;
+  width: 20%;
+  height: 40px;
+
+  span {
+    height: 35px;
+    display: table-cell;
+    letter-spacing: 1.5px;
+    font-size: 1em;
+    font-weight: 600;
+    vertical-align: middle;
+    white-space: nowrap;
+  }
+`
+
 const Logo = styled.div `
   letter-spacing: 2px;
   width: 210px;
   display: flex;
+  margin-right: 30px;
+
   h3 {
     padding-top: 3px;
     color: #e6ebeb;

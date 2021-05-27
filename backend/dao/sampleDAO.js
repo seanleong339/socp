@@ -6,7 +6,7 @@ class sampleDAO {
             return;
         }
         try {
-            sample = await conn.db(process.env.SOCPLANNER_NS).collections("studyplan");
+            sample = await conn.db(process.env.SOCPLANNER_NS).collection("studyplan");
         } catch (e) {
             console.error(
                 `Unable to establish a collection handle in SampleDAO ${e}`
@@ -33,7 +33,7 @@ class sampleDAO {
         let cursor
 
         try {
-            //console.log(sample)
+            // console.log(sample)
             cursor = await sample.find()//query)
         } catch (e) {
             console.error(`Unable to issue find command, ${e}`)

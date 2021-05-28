@@ -1,5 +1,0 @@
-{
-"buildpacks": [{
-    "url" : "heroku/nodejs"
-}]
-}

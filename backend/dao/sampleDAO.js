@@ -8,7 +8,7 @@ class sampleDAO {
             return;
         }
         try {
-            sample = await conn.db(process.env.SOCPLANNER_NS).collection("studyplan");
+            sample = await conn.db("socplanner").collection("studyplan");
         } catch (e) {
             console.error(
                 `Unable to establish a collection handle in SampleDAO ${e}`

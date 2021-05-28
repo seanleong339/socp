@@ -15,3 +15,4 @@ sketch
 
 ./backend/node_modules
 ./backend/json format.js
+./backend/.env

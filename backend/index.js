@@ -10,7 +10,7 @@ const MongoClient = mongodb.MongoClient
 const port = process.env.PORT || 5000;
 
 MongoClient.connect(
-    process.env.SOCPLANNER_DB_URI,
+    "mongodb+srv://sean:Orbital2021@cluster0.kacq5.mongodb.net/myFirstDatabase?retryWrites=true&w=majority",
     {
         poolSize: 50,
         wtimeout: 2500,

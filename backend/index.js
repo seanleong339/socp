@@ -7,7 +7,7 @@ dotenv.config()
 
 const MongoClient = mongodb.MongoClient
 
-const port = process.env.PORT
+const port = process.env.PORT || 5000;
 
 MongoClient.connect(
     process.env.SOCPLANNER_DB_URI,

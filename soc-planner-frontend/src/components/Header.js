@@ -3,6 +3,7 @@ import styled from 'styled-components'
 import IconButton from '@material-ui/core/IconButton'
 import SearchIcon from '@material-ui/icons/Search'
 import { Link } from 'react-router-dom'
+import { v4 as uuidv4 } from 'uuid'
 
 function Header() {
   
@@ -22,7 +23,7 @@ function Header() {
         
         <Major>
           <p>MAJOR:</p>
-          <select value={major} onChange={e => setMajor(e.target.value)} className="form-select form-select-sm" name="module" id="module">
+          <select value={major} onChange={e => setMajor(e.target.value)} className="form-select form-select-sm" name="major" id="major">
             <option value="computer science">Computer Science</option>
             <option value="business analytics">Business Analytics</option>
             <option value="information systems">Information Systems</option>
@@ -33,15 +34,7 @@ function Header() {
           <p>SPECIALISATION:</p>
           <input value={specialisation} onChange={e => setSpecialisation(e.target.value)} type="text" id="specialisation" name="specialisation" autocomplete="off" className="form-control form-control-sm" />
         </Specialisation>
-        <SubmitField
-        to = {{
-          pathname: '/showplans',
-          state: {
-            major: major,
-            specialisation: specialisation
-          }
-        }}
-        >
+        <SubmitField to={`/showplans/${major}/${specialisation}`}>
           <StyledButton type="submit" name="submit">
             <SearchIcon style={{fill: "white", fontSize: 25}} />
           </StyledButton>

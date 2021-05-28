@@ -18,49 +18,50 @@ function Planner() {
 
   return (
     <Container>
+      <h1>Module Planner</h1>
       <Grid container spacing={3}>
         <GridStyled item xs={2}><h3>Y1</h3></GridStyled>
         <GridStyled item xs={5}>
           <PaperStyled className={classes.tealPaper} elevation={2}>
-            <Semester />
+            <Semester id={'y1s1'} submit={false} />
           </PaperStyled>
         </GridStyled>
         <GridStyled item xs={5}>
           <PaperStyled className={classes.tealPaper} elevation={2}>
-            <Semester />
+            <Semester id={'y1s2'} submit={false} />
           </PaperStyled>
         </GridStyled>
         <GridStyled item xs={2}><h3>Y2</h3></GridStyled>
         <GridStyled item xs={5}>
           <PaperStyled className={classes.tealPaper} elevation={2}>
-            <Semester />
+            <Semester id={'y2s1'} submit={false} />
           </PaperStyled>
         </GridStyled>
         <GridStyled item xs={5}>
           <PaperStyled className={classes.tealPaper} elevation={2}>
-            <Semester />
+            <Semester id={'y2s2'} submit={false} />
           </PaperStyled>
         </GridStyled>
         <GridStyled item xs={2}><h3>Y3</h3></GridStyled>
         <GridStyled item xs={5}>
           <PaperStyled className={classes.tealPaper} elevation={2}>
-            <Semester />
+            <Semester id={'y3s1'} submit={false} />
           </PaperStyled>
         </GridStyled>
         <GridStyled item xs={5}>
           <PaperStyled className={classes.tealPaper} elevation={2}>
-            <Semester />
+            <Semester id={'y3s2'} submit={false} />
           </PaperStyled>
         </GridStyled>
         <GridStyled item xs={2}><h3>Y4</h3></GridStyled>
         <GridStyled item xs={5}>
           <PaperStyled className={classes.tealPaper} elevation={2}>
-            <Semester />
+            <Semester id={'y4s1'} submit={false} />
           </PaperStyled>
         </GridStyled>
         <GridStyled item xs={5}>
           <PaperStyled className={classes.tealPaper} elevation={2}>
-            <Semester />
+            <Semester id={'y4s2'} submit={false} />
           </PaperStyled>
         </GridStyled>
       </Grid>
@@ -73,6 +74,13 @@ function Planner() {
 const Container = styled.div `
   min-width: calc(100vw - 400px);
   height: 100%;
+
+  h1 {
+    margin-left: 17%;
+    margin-bottom: 3%;
+    margin-top: 1%;
+    font-weight: 300;
+  }
 `
 const PaperStyled = styled(Paper) `
   min-height: 150px;

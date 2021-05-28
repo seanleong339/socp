@@ -6,7 +6,8 @@ import Paper from '@material-ui/core/Paper'
 import { makeStyles } from '@material-ui/core'
 import teal from "@material-ui/core/colors/teal"
 import axios from '../dbAxios'
-import { useLocation, useParams } from 'react-router'
+import { useParams, useLocation } from 'react-router'
+
 
 const useStyles = makeStyles((theme) => ({
     tealPaper: {
@@ -21,32 +22,41 @@ function ShowPlans() {
 
     const [studyPlans, setStudyPlans] = useState([])
 
-    const location = useLocation()
+    var { major, specialisation } = useParams()
 
-
-    
+    let location = useLocation() // updates app whenever 'find a plan' changes
 
     useEffect(() => {
+        
         async function getData() {
             let studyPlanData
-            if (location.state) {
-                studyPlanData = await axios.get(`/api/sample?major=${location.state.major}&specialisation=${location.state.specialisation}`)
+            if (major) {
+                if (specialisation) {
+                    studyPlanData = await axios.get(`/api/sample?major=${major}&specialisation=${specialisation}`)
+                } else {
+                    studyPlanData = await axios.get(`/api/sample?major=${major}`)
+                }
             } else {
                 studyPlanData = await axios.get(`/api/sample`)
             }
             setStudyPlans(studyPlanData.data.plans)
             
+            
         }
         getData()
-        console.log(studyPlans)
         
-    }, [])
+    }, [location])
 
     
 
     return (
         <Container>
-            { studyPlans.map(plan => (
+            { studyPlans.length == 0 ? 
+            <Description>
+                <h2>No Plans Yet</h2>
+            </Description>
+             : 
+            studyPlans.map(plan => (
             <>
             <Description>
                 <h5>{plan.major.toUpperCase()}</h5>
@@ -131,6 +141,11 @@ const Description = styled.div`
   h5 {
     margin-left: 17%;
     margin-right: 1%;
+  }
+
+  h2 {
+      margin-left: 17%;
+      margin-bottom: 40%;
   }
 
 `;

@@ -2,11 +2,13 @@ import React from 'react'
 import styled from 'styled-components'
 import Planner from './Planner'
 import ShowPlans from './ShowPlans'
+import SubmitPlan from './SubmitPlan'
 import {
   Switch,
   Route,
   Link
 } from 'react-router-dom'
+
 
 function Home() {
   return (
@@ -28,8 +30,11 @@ function Home() {
         <Route exact path="/">
           <Planner />
         </Route>
-        <Route exact path="/showplans">
+        <Route path="/showplans/:major?/:specialisation?">
           <ShowPlans />
+        </Route>
+        <Route path="/submitplan">
+          <SubmitPlan />
         </Route>
       </Switch>
     </Container>

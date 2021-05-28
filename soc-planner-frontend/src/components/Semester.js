@@ -17,6 +17,14 @@ function Semester(props) {
     const [input, setInput] = useState('')
     const [credits, setCredits] = useState(0)
 
+    useEffect(() => {
+        if (props.submit === true) {
+            props.func(props.id, modules)
+        } else {
+            setModules([])
+        }
+        
+    }, [props.submit])
 
     async function addModule(event) {
         event.preventDefault()

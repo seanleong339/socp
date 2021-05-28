@@ -6,7 +6,7 @@ import Paper from '@material-ui/core/Paper'
 import { makeStyles } from '@material-ui/core'
 import teal from "@material-ui/core/colors/teal"
 import Button from '@material-ui/core/Button'
-import axios from 'axios'
+import axios from '../dbAxios'
 
 const useStyles = makeStyles((theme) => ({
   tealPaper: {
@@ -37,21 +37,25 @@ function SubmitPlan() {
     setSubmit(false)
   }
 
-  function submitForm(event) {
+  async function submitForm(event) {
     event.preventDefault()
     setSubmit(true)
-    // if (specialisation !== "") {
-    //   axios.post('endpoint', {
-    //     ...plan,
-    //     major: major,
-    //     specialisation: specialisation
-    //   })
-    // } else {
-    //   axios.post('endpoint', {
-    //     ...plan,
-    //     major: major
-    //   })
-    // }
+    setMajor("")
+    setSpecialsation("")
+    let res
+    if (specialisation !== "") {
+      res = axios.post('/api/user', {
+        ...plan,
+        major: major,
+        specialisation: specialisation
+      })
+    } else {
+      res = axios.post('/api/user', {
+        ...plan,
+        major: major
+      })
+    }
+    console.log(res);
     
   }
 

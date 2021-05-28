@@ -22,6 +22,7 @@ function Semester(props) {
             props.func(props.id, modules)
         } else {
             setModules([])
+            setCredits(0)
         }
         
     }, [props.submit])

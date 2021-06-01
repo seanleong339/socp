@@ -1,5 +1,3 @@
-const mongodb = require("mongodb")
-
 let sample
 
 class sampleDAO {

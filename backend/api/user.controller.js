@@ -1,19 +1,65 @@
 const sampleDAO = require("../dao/sampleDAO.js")
+const criteriaDAO = require("../dao/criteriaDAO")
+const least = require("./counting")
 
 class userController {
     /**
-      * 
       * @param {http request} req 
       * @param {http response} res 
       * this method only works if request body is in json format
       */
-    static async apiSubmitPlan(req, res, next) {
+    static async apiSubmitPlan(req, res) {
         let submission = req.body;
         const success = await sampleDAO.addPlan(submission);
         if (success) {
             res.send(true);
         }
     }
+
+    static async apiCheckPlan(req, res) {
+        let plan = req.body.y1s1.concat(req.body.y1s2, req.body.y2s1, req.body.y2s2, req.body.y3s1, req.body.y3s2, req.body.y4s1, req.body.y4s2)
+
+        let filters = { "major": req.body.major };
+        if ("specialisation" in req.body) {
+            filters.specialisation = req.body.specialisation;
+        }
+        let crit = await criteriaDAO.getCriteria(filters);
+        let answer = {};
+
+        if (crit.core.every(x => plan.indexOf(x) > -1)) {
+            answer.core = true
+            console.log("all core mods present")
+        }
+        else {
+            answer.core = false
+            console.log("missing core mods")
+        }
+
+
+        if (crit.set1) {
+            answer.set1 = least(plan, crit.set1, 2);
+            answer.set2 = least(plan, crit.set2, 3);
+        }
+
+        if (parseInt(req.body.totalmc) < 160) {
+            answer.mc = false;
+        }
+        else {
+            answer.mc = true;
+        }
+        console.log(answer);
+        res.send(answer);
+    }
+
+    static async apiGetModules(req, res) {
+        let filters = { "major": req.body.major };
+        if ("specialisation" in req.body) {
+            filters.specialisation = req.body.specialisation;
+        }
+        let crit = await criteriaDAO.getCriteria(filters);
+        console.log(crit);
+        res.json(crit);
+    }
 }
-    
+
 module.exports = userController

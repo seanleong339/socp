@@ -1,4 +1,3 @@
-const { apiGetSamples } = require("./api/sample.controller")
 
 {
     "major": "computer science",
@@ -10,4 +9,11 @@ const { apiGetSamples } = require("./api/sample.controller")
     "y3s2": ["focus area", "focus area", "ue", "ue", "ue"],
     "y4s1": ["ATAP"],
     "y4s2": ["focus area", "ue", "ue", "ue", "ue"]
+}
+
+json format for checking course criteria
+{
+    "totalmc": "160",
+    "major": "business analytics",
+    "core": ["bt1101","cs1010s","is1103","ma1311","ma1521","bt2101","bt2102","bt2103","bt2201","cs2030","cs2040","is2101","st2334","bt3102","bt3103","is3103","bt4103"],
 }

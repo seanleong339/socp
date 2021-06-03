@@ -26,6 +26,19 @@ class sampleController {
         }
         res.json(response)
     }
+
+    static async apiUpdateVote(req, res) {
+        let vote = {};
+        vote.id = req.body.id;
+        vote.value = req.body.value;
+        if (await sampleDAO.voting(vote)) {
+            console.log("vote updated successfully")
+            res.send(true);
+        }
+        else {
+            res.send(false)
+        }
+    }
     
    
 }

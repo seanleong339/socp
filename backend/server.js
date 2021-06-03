@@ -8,7 +8,7 @@ const app = express()
 app.use(cors())
 app.use(express.json())
 
-app.use("/api/sample", sample)
+app.use("/sample", sample)
 app.use("/", user) //removed api/user
 app.use("*", (req, res) => {
     res.status(404).json({error:"not found"})

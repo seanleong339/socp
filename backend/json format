@@ -1,6 +1,7 @@
 
 {
     "major": "computer science",
+    "specialisation" : ""
     "y1s1": ["cs1101s", "cs1231s", "math", "math", "ulr"],
     "y1s2": ["cs2030s", "cs2040s", "cs2100", "is1103", "ulr"],
     "y2s1": ["cs2103t", "cs2101", "cs2105", "cs2106", "ulr"],
@@ -9,6 +10,7 @@
     "y3s2": ["focus area", "focus area", "ue", "ue", "ue"],
     "y4s1": ["ATAP"],
     "y4s2": ["focus area", "ue", "ue", "ue", "ue"]
+    "totalmc": 
 }
 
 json format for checking course criteria

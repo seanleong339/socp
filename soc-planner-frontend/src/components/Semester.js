@@ -9,13 +9,22 @@ import DialogContent from '@material-ui/core/DialogContent'
 import DialogTitle from '@material-ui/core/DialogTitle'
 import ClearRoundedIcon from '@material-ui/icons/ClearRounded'
 import axios from '../nusmodsAxios'
+import Autocomplete from '@material-ui/lab/Autocomplete'
+import CircularProgress from '@material-ui/core/CircularProgress'
+import { TextField } from '@material-ui/core'
 
 function Semester(props) {
 
     const [modules, setModules] = useState([])
-    const [open, setOpen] = useState(false)
+    const [dialogOpen, setDialogOpen] = useState(false)
     const [input, setInput] = useState('')
     const [credits, setCredits] = useState(0)
+    const [allMods, setAllMods] = useState([])
+
+    // Following props are for creating custom module
+    const [ customModuleCode, setCustomModuleCode ] = useState("")
+    const [ customModuleTitle, setCustomModuleTitle] = useState("")
+    const [ customModuleCredits, setCustomModuleCredits ] = useState() 
 
     useEffect(() => {
         if (props.submit === true) {
@@ -24,16 +33,36 @@ function Semester(props) {
             setModules([])
             setCredits(0)
         }
+
+        async function getMods() {
+            let modsData = await axios.get("https://api.nusmods.com/v2/2020-2021/moduleList.json")
+            setAllMods(modsData.data)
+        }
+
+        getMods()
         
     }, [props.submit])
 
     async function addModule(event) {
         event.preventDefault()
-        const moduleData = await axios.get(`https://api.nusmods.com/v2/2020-2021/modules/${input}.json`)
+        let moduleData
+        if (input) {
+          moduleData = await axios.get(`https://api.nusmods.com/v2/2020-2021/modules/${input.split(" ")[0].toUpperCase()}.json`)
+        } else {
+          moduleData = new Object()
+          moduleData.data = new Object()
+          moduleData.data.moduleCredit = customModuleCredits
+          moduleData.data.moduleCode = customModuleCode
+          moduleData.data.title = customModuleTitle
+        }
         setModules([...modules, moduleData])
         setCredits(credits + Number(moduleData.data.moduleCredit))
         setInput('')
-        setOpen(false)
+        setDialogOpen(false)
+    }
+
+    function addCustomModule(event) {
+      
     }
 
     function deleteModule(moduleCode) {
@@ -48,53 +77,80 @@ function Semester(props) {
         setModules(filteredModules)
     }
 
+    
+
 
     return (
-        <Container>
+      <Container>
+        <Dialog
+          open={dialogOpen}
+          onClose={(e) => setDialogOpen(false)}
+          PaperProps={{
+            style: {
+              backgroundColor: "#9dbabb",
+            },
+          }}
+        >
+          <DialogTitle>Search For NUS Module</DialogTitle>
+          <DialogContent>
+              <Autocomplete
+                style={{width: 495}}
+                onInputChange={(event, input) => setInput(input)}
+                options={allMods}
+                getOptionLabel={(option) => option["moduleCode"] + " " + option["title"]}
+                renderInput={(params) => 
+                    allMods.length === 0 ?
+                    <CircularProgress /> : 
+                    <TextField {...params} variant="outlined" />
+                }
+                />
+          </DialogContent>
+          <DialogTitle>Or Enter A Custom Module</DialogTitle>
+          <DialogContent>
+            <form>
+              <TextField style={{width: '90%', marginBottom: "20px"}} value={customModuleCode} onChange={e => setCustomModuleCode(e.target.value)} type="text" id="moduleCode" placeholder="Enter Module Code" autoComplete="off" variant="outlined" /> 
+              <TextField style={{width: '90%', marginBottom: "20px"}} value={customModuleTitle} onChange={e => setCustomModuleTitle(e.target.value)} type="text" id="moduleTitle" placeholder="Enter Module Title" autoComplete="off" variant="outlined" />
+              <TextField style={{width: '90%'}} value={customModuleCredits} onChange={e => setCustomModuleCredits(e.target.value)} type="number" min="0" max="20" id="moduleCredits" placeholder="Module Credits" autoComplete="off" variant="outlined" />
+            </form>
+          </DialogContent>
 
-            <Dialog
-                open={open}
-                onClose={e => setOpen(false)}
-                PaperProps={{style: {
-                    backgroundColor: '#9dbabb'
-                }}}>
-                <DialogTitle>Search Module</DialogTitle>
-                <DialogContent>
-                    <form>
-                    <input value={input} onChange={e => setInput(e.target.value)} autoFocus fullWidth type="text" id="module_search" name="module_search" placeholder="Enter module code..." className="form-control form-control-sm" />
-                    
-                    <DialogActions>
-                        <Button disabled={!input} type="submit" color="primary" onClick={addModule}>Add Module</Button>
-                        <Button onClick={e => setOpen(false)}>Cancel</Button>
-                    </DialogActions> 
-                    
-                    </form>
-                    
-                </DialogContent>
-            </Dialog>
-            <SemInfo>
-                {modules.length}&nbsp;{modules.length === 1 ? <span>module</span> : <span>modules</span>} &nbsp;&nbsp;&nbsp; {credits}MCs    
-                &nbsp;&nbsp;&nbsp;&nbsp;
-                <IconButton onClick={e => setOpen(true)} data-bs-toggle="collapse" size="small">
-                    <AddCircleIcon style={{fill: '#8cecf0', fontSize: 25}} />
-                </IconButton>
-            </SemInfo>
-            
-            <Modules>
-                <ul>
-                    {modules.map(module => 
-                        <li>
-                            <span><b>{module.data.title}</b> {module.data.moduleCode} {module.data.moduleCredit}MC</span>
-                            <DeleteButton onClick={e => deleteModule(module.data.moduleCode)}>
-                                <ClearRoundedIcon />
-                            </DeleteButton>
-                        </li>
-                    )}
-                </ul>
-            </Modules>
-            
-        </Container>
-    )
+             <DialogActions>
+                <Button disabled={!(input || (customModuleCode && customModuleTitle && customModuleCredits))} type="submit" color="primary" onClick={addModule}>Add Module</Button>
+                <Button onClick={e => setDialogOpen(false)}>Cancel</Button>
+              </DialogActions>  
+        </Dialog>
+        <SemInfo>
+          {modules.length}&nbsp;
+          {modules.length === 1 ? <span>module</span> : <span>modules</span>}{" "}
+          &nbsp;&nbsp;&nbsp; {credits}MCs &nbsp;&nbsp;&nbsp;&nbsp;
+          <IconButton
+            onClick={(e) => setDialogOpen(true)}
+            data-bs-toggle="collapse"
+            size="small"
+          >
+            <AddCircleIcon style={{ fill: "#8cecf0", fontSize: 25 }} />
+          </IconButton>
+        </SemInfo>
+
+        <Modules>
+          <ul>
+            {modules.map((module) => (
+              <li>
+                <span>
+                  <b>{module.data.title}</b> {module.data.moduleCode}{" "}
+                  {module.data.moduleCredit}MC
+                </span>
+                <DeleteButton
+                  onClick={(e) => deleteModule(module.data.moduleCode)}
+                >
+                  <ClearRoundedIcon />
+                </DeleteButton>
+              </li>
+            ))}
+          </ul>
+        </Modules>
+      </Container>
+    );
 }
 
 const Container = styled.div `

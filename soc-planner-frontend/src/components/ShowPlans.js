@@ -6,7 +6,6 @@ import Paper from '@material-ui/core/Paper'
 import { makeStyles } from '@material-ui/core'
 import teal from "@material-ui/core/colors/teal"
 import axios from '../dbAxios'
-import { useParams, useLocation } from 'react-router'
 
 
 const useStyles = makeStyles((theme) => ({
@@ -15,123 +14,212 @@ const useStyles = makeStyles((theme) => ({
     }
   }))
 
+const specialisations = {
+  'computer science': [
+    {name: "Artificial Intelligence", value: "ai"},
+    {name: "Algorithms & Theory", value: "theory and algo"},
+    {name: "Computer Graphics and Games", value: "computer graphics"},
+    {name: "Computer Security", value: "computer security"},
+    {name: "Database Systems", value: "database systems"},
+    {name: "Multimedia Information Retrieval", value: "multimedia info"},
+    {name: "Networking and Distributed Systems", value: "networking and distrbuted systems"},
+    {name:  "Parallel Computing", value: "parallel computing"},
+    {name: "Programming Languages", value: "programming languages"},
+    {name: "Software Engineering", value: "software engineering"},
+  ],
+  'business analytics': [
+    {name: "Financial Analytics", value: "financial analytics"},
+    {name: "Marketing Analytics", value: "marketing analytics"}
+  ], 
+  'information systems': [
+    {name: "Digital Innovation", value: "digital innovation"},
+    {name: "Electronic Commerce", value: "electronic commerce"},
+    {name: "Financial Technology", value: "financial technology"}
+  ]
+}
+
+function showSpecialisations(major) {
+  return (
+    <>
+    <option value="">All</option>
+    { specialisations[major].map(x => (
+      <option value={x.value}>{x.name}</option>
+    ))
+    }
+    </>
+  )
+}
+
 
 function ShowPlans() {
 
     const classes = useStyles()
 
-    const [studyPlans, setStudyPlans] = useState([])
-
-    var { major, specialisation } = useParams()
-
-    let location = useLocation() // updates app whenever 'find a plan' changes
-
-    useEffect(() => {
+    const [ major, setMajor ] = useState('')
+    const [ specialisation, setSpecialisation ] = useState('')
+    const [ studyPlans, setStudyPlans ] = useState([])
+  
+  useEffect(() => {
+    async function getData() {
+      const studyPlanData = await axios.get(`/api/sample`)
+      setStudyPlans(studyPlanData.data.plans)
+    }
+    getData()
         
-        async function getData() {
-            let studyPlanData
-            if (major) {
-                if (specialisation) {
-                    studyPlanData = await axios.get(`/api/sample?major=${major}&specialisation=${specialisation}`)
-                } else {
-                    studyPlanData = await axios.get(`/api/sample?major=${major}`)
-                }
-            } else {
-                studyPlanData = await axios.get(`/api/sample`)
-            }
-            setStudyPlans(studyPlanData.data.plans)
-            
-            
-        }
-        getData()
-        
-    }, [location])
+    }, [])
+
+  async function filter(event) {
+    event.preventDefault()
+
+    let studyPlanData
+    if (major !== '') {
+      if (specialisation !== '') {
+        studyPlanData = await axios.get(`/api/sample?major=${major}&specialisation=${specialisation}`)
+      } else {
+        studyPlanData = await axios.get(`/api/sample?major=${major}`)
+      }
+    } else {
+      studyPlanData = await axios.get(`/api/sample`)
+    }
+    setMajor('')
+    setSpecialisation('')
+    setStudyPlans(studyPlanData.data.plans)
+    console.log(studyPlans)
+  }
 
     
 
     return (
-        <Container>
-            { studyPlans.length == 0 ? 
-            <Description>
-                <h2>No Plans Yet</h2>
-            </Description>
-             : 
-            studyPlans.map(plan => (
+      <Container>
+        <Heading>
+          <h2 class="header">Study Plans</h2>
+          <form>
+            <Major>
+              <span>MAJOR: </span>
+              <select
+                className="form-select form-select-sm"
+                name="major"
+                id="major"
+                value={major}
+                onChange={(e) => setMajor(e.target.value)}
+                required
+              >
+                <option value="">All</option>
+                <option value="computer science">Computer Science</option>
+                <option value="business analytics">Business Analytics</option>
+                <option value="information systems">Information Systems</option>
+                <option value="information security">
+                  Information Security
+                </option>
+              </select>
+            </Major>
+
+            <Specialisation>
+              <span>SPECIALISATION: </span>
+              <select
+              className="form-select form-select-sm"
+              name="specialisation"
+              id="specialisation"
+              value={specialisation}
+              onChange={e => setSpecialisation(e.target.value)}
+              disabled={major === "" || major === "information security"}>
+                {
+                   (major === "" || major === "information security") 
+                   ? <option></option>
+                   : showSpecialisations(major)
+                }
+
+              </select>
+  
+            </Specialisation>
+
+            <FilterButton type="submit" onClick={filter}>
+              SHOW PLANS
+            </FilterButton>
+          </form>
+        </Heading>
+        {studyPlans.length === 0 ? (
+          <ErrorMsg>
+            <h2>No Plans Found! 😭</h2>
+          </ErrorMsg>
+        ) : (
+          studyPlans.map((plan) => (
             <>
-            <Description>
+              <Description>
                 <h5>{plan.major.toUpperCase()}</h5>
                 <h7>{plan.specialisation && plan.specialisation.toUpperCase()}</h7>
-            </Description>
-           
-            <Grid container spacing={3}>
-                <GridStyled item xs={2}><h3>Y1</h3></GridStyled>
+              </Description>
+
+              <Grid container spacing={3}>
+                <GridStyled item xs={2}>
+                  <h3>Y1</h3>
+                </GridStyled>
                 <GridStyled item xs={5}>
-                <PaperStyled className={classes.tealPaper} elevation={2}>
+                  <PaperStyled className={classes.tealPaper} elevation={2}>
                     <SemesterPlan modules={plan.y1s1} />
-                </PaperStyled>
+                  </PaperStyled>
                 </GridStyled>
                 <GridStyled item xs={5}>
-                <PaperStyled className={classes.tealPaper} elevation={2}>
+                  <PaperStyled className={classes.tealPaper} elevation={2}>
                     <SemesterPlan modules={plan.y1s2} />
-                </PaperStyled>
+                  </PaperStyled>
                 </GridStyled>
-                <GridStyled item xs={2}><h3>Y2</h3></GridStyled>
+                <GridStyled item xs={2}>
+                  <h3>Y2</h3>
+                </GridStyled>
                 <GridStyled item xs={5}>
-                <PaperStyled className={classes.tealPaper} elevation={2}>
+                  <PaperStyled className={classes.tealPaper} elevation={2}>
                     <SemesterPlan modules={plan.y2s1} />
-                </PaperStyled>
+                  </PaperStyled>
                 </GridStyled>
                 <GridStyled item xs={5}>
-                <PaperStyled className={classes.tealPaper} elevation={2}>
+                  <PaperStyled className={classes.tealPaper} elevation={2}>
                     <SemesterPlan modules={plan.y2s2} />
-                </PaperStyled>
+                  </PaperStyled>
                 </GridStyled>
-                <GridStyled item xs={2}><h3>Y3</h3></GridStyled>
+                <GridStyled item xs={2}>
+                  <h3>Y3</h3>
+                </GridStyled>
                 <GridStyled item xs={5}>
-                <PaperStyled className={classes.tealPaper} elevation={2}>
+                  <PaperStyled className={classes.tealPaper} elevation={2}>
                     <SemesterPlan modules={plan.y3s1} />
-                </PaperStyled>
+                  </PaperStyled>
                 </GridStyled>
                 <GridStyled item xs={5}>
-                <PaperStyled className={classes.tealPaper} elevation={2}>
+                  <PaperStyled className={classes.tealPaper} elevation={2}>
                     <SemesterPlan modules={plan.y3s2} />
-                </PaperStyled>
+                  </PaperStyled>
                 </GridStyled>
-                <GridStyled item xs={2}><h3>Y4</h3></GridStyled>
+                <GridStyled item xs={2}>
+                  <h3>Y4</h3>
+                </GridStyled>
                 <GridStyled item xs={5}>
-                <PaperStyled className={classes.tealPaper} elevation={2}>
+                  <PaperStyled className={classes.tealPaper} elevation={2}>
                     <SemesterPlan modules={plan.y4s1} />
-                </PaperStyled>
+                  </PaperStyled>
                 </GridStyled>
                 <GridStyled item xs={5}>
-                <PaperStyled className={classes.tealPaper} elevation={2}>
+                  <PaperStyled className={classes.tealPaper} elevation={2}>
                     <SemesterPlan modules={plan.y4s2} />
-                </PaperStyled>
+                  </PaperStyled>
                 </GridStyled>
-            </Grid>
+              </Grid>
             </>
-            )) }
-        </Container>
-    )
+          ))
+        )}
+      </Container>
+    );
 }
 
 const Container = styled.div `
-    min-width: calc(100vw - 400px);
-    height: 100%;
-
-    
+    height: 100%;    
+    min-height: calc(100vh - 60px);
+    width: 100%;
 `
 const PaperStyled = styled(Paper) `
   min-height: 150px;
   min-width: 200px;
   height: 100%;
-`
-const GridStyled = styled(Grid)`
-  h3 {
-    margin-left: 85%;
-    margin-top: 22%;
-    font-weight: 10;
-  }
 `
 const Description = styled.div`
   display: flex;
@@ -148,6 +236,82 @@ const Description = styled.div`
       margin-bottom: 40%;
   }
 
-`;
+`
+const ErrorMsg = styled.div `
+  margin-top: 10%;
+  margin-left: 13%;
+`
+const GridStyled = styled(Grid)`
+  h3 {
+    margin-top: 22%;
+    font-weight: 10;
+    text-align: center;
+  }
+`
+const Heading = styled.div `
+    display: flex;
+    justify-content: center;
+    margin-left: auto;
+    margin-right: auto;
+    margin-top: 20px;
+    margin-bottom: 10px;
+    width: 90%;
+  
+    h2 {
+      white-space: nowrap;
+      margin-right: 5%;
+    }
+
+    form {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        width: 70%;
+        font-size: 14px;
+        letter-spacing: 1px;
+
+        select {
+          font-size: 13px;
+        }
+
+    }
+`
+const Major = styled.div `
+  display: flex;
+  width: 30%;
+  align-items: center;
+  margin-right: 3%;
+  span {
+      margin-right: 2%;
+  }
+`
+const Specialisation = styled.div `
+  display: flex;
+  width: 35%;
+  align-items: center;
+  margin-right: 5%;
+  span {
+      margin-right: 2%;
+  }
+`
+const FilterButton = styled.button `
+  background: #0288d1;
+  border: none;
+  color: white;
+  padding: 6px 22px;
+  border-radius: 20px;
+  font-size: 13px;
+  font-weight: 500;
+  letter-spacing: 1.1px;
+  white-space: nowrap;
+
+  &:hover {
+    background: #0277bd;
+    color: #e1f5fe;
+    cursor: pointer;
+    transition: all 250ms cubic-bezier(0.25, 0.46, 0.45, 0.94) 0s;
+  }
+`
+
 
 export default ShowPlans

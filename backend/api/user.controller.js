@@ -17,11 +17,11 @@ class userController {
     }
 
     static async apiCheckPlan(req, res) {
-        let plan = req.body.y1s1.concat(req.body.y1s2, req.body.y2s1, req.body.y2s2, req.body.y3s1, req.body.y3s2, req.body.y4s1, req.body.y4s2)
+        let plan = req.query.y1s1.concat(req.query.y1s2, req.query.y2s1, req.query.y2s2, req.query.y3s1, req.query.y3s2, req.query.y4s1, req.query.y4s2)
 
-        let filters = { "major": req.body.major };
-        if ("specialisation" in req.body) {
-            filters.specialisation = req.body.specialisation;
+        let filters = { "major": req.query.major };
+        if ("specialisation" in req.query) {
+            filters.specialisation = req.query.specialisation;
         }
         let crit = await criteriaDAO.getCriteria(filters);
         let answer = {};
@@ -52,9 +52,9 @@ class userController {
     }
 
     static async apiGetModules(req, res) {
-        let filters = { "major": req.body.major };
-        if ("specialisation" in req.body) {
-            filters.specialisation = req.body.specialisation;
+        let filters = { "major": req.query.major };
+        if ("specialisation" in req.query) {
+            filters.specialisation = req.query.specialisation;
         }
         let crit = await criteriaDAO.getCriteria(filters);
         console.log(crit);

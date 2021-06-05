@@ -1,4 +1,5 @@
 let sample
+const ObjectId = require("mongodb").ObjectId;
 
 class sampleDAO {
     static async injectdb(conn) {
@@ -62,8 +63,21 @@ class sampleDAO {
         try {
             return await sample.insertOne(plan)
         } catch (e) {
-            console.error(`error inserting the plan ${e}`);
+            console.error(`Error inserting the plan ${e}`);
             return {error: e}
+        }
+    }
+
+    static async voting(vote) {
+        let oid = new ObjectId(vote.id)
+        try {
+            return await sample.updateOne(
+                { _id: oid },
+                { $inc: { "votes" : vote.value } }
+            );
+        } catch (e) {
+            console.error(`Error in updating vote ${e}`);
+            return e;
         }
     }
 }

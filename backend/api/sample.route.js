@@ -4,7 +4,6 @@ const sampleCtrl = require("./sample.controller.js")
 const router = express.Router()
 
 router.route("/").get(sampleCtrl.apiGetSamples)
-
-router.route("/comment");
+router.route("/voting").post(sampleCtrl.apiUpdateVote)
 
 module.exports = router

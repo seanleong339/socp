@@ -13,15 +13,16 @@ class userController {
         const success = await sampleDAO.addPlan(submission);
         if (success) {
             res.send(true);
+            console.log("success")
         }
     }
 
     static async apiCheckPlan(req, res) {
-        let plan = req.body.y1s1.concat(req.body.y1s2, req.body.y2s1, req.body.y2s2, req.body.y3s1, req.body.y3s2, req.body.y4s1, req.body.y4s2)
-
-        let filters = { "major": req.body.major };
-        if ("specialisation" in req.body) {
-            filters.specialisation = req.body.specialisation;
+        let plan = req.query.y1s1.concat(req.query.y1s2, req.query.y2s1, req.query.y2s2, req.query.y3s1, req.query.y3s2, req.query.y4s1, req.query.y4s2)
+        console.log(plan)
+        let filters = { "major": req.query.major };
+        if ("specialisation" in req.query) {
+            filters.specialisation = req.query.specialisation;
         }
         let crit = await criteriaDAO.getCriteria(filters);
         let answer = {};
@@ -41,7 +42,7 @@ class userController {
             answer.set2 = least(plan, crit.set2, 3);
         }
 
-        if (parseInt(req.body.totalmc) < 160) {
+        if (parseInt(req.query.totalmc) < 160) {
             answer.mc = false;
         }
         else {

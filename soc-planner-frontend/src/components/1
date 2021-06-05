@@ -58,6 +58,7 @@ function Planner() {
   const [ specialisation, setSpecialisation ] = useState("")
   const [ plan, setPlan ] = useState({
     major: "",
+    specialisation: "",
     y1s1: [],
     y1s2: [],
     y2s1: [],
@@ -68,11 +69,8 @@ function Planner() {
     y4s2: [],
   })
   const [ submit, setSubmit] = useState(false)
-  const [ totalMCs, setTotalMCs] = useState(0)
 
   function passData(semester, mods) {
-    console.log(mods)
-    console.log("passData")
     const modsToAdd = {}
     modsToAdd[semester] = mods
     setPlan((prevState) => {
@@ -108,24 +106,21 @@ function Planner() {
 
   async function checkForm(event) {
     event.preventDefault()
+    console.log("Checking")
     let res
     if (specialisation !== "") {
       console.log({...plan, major: major, specialisation: specialisation})
       res = await axios.get('/check', {
-        params: {
-          ...plan,
-          major: major,
-          specialisation: specialisation
-        }
+        ...plan,
+        major: major,
+        specialisation: specialisation
       })
       
     } else {
       console.log({...plan, major: major})
       res = await axios.get('/check', {
-        params: {
         ...plan,
         major: major
-        }
       })
     }
   }

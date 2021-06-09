@@ -5,7 +5,7 @@
  * @param {*} ele the modules of the user's study plan
  * @param {*} check the modules that are in the criteria for a specific major/specialisation
  * @param {*} num the minimum number of modules in ele that have to be in the check
- * @returns 
+ * @returns result an object containing the modules that are present in both ele and check, and if ele passes the check
  */
 function least(ele, check, num) {
     let count = 0;

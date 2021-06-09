@@ -32,7 +32,19 @@ function Semester(props) {
         setAllMods(modsData.data)
       }
 
+      async function addModuleFromProps(moduleCode) {
+        let moduleData = await axios.get(`https://api.nusmods.com/v2/2020-2021/modules/${moduleCode.toUpperCase()}.json`)
+        setModules(prevState => [...prevState, moduleData])
+        setCredits(prevState => prevState + Number(moduleData.data.moduleCredit))
+      }
+
       getMods()
+
+      if (props.mods.length > 0) { // if plan is in local storage
+        for (let i = 0; i < props.mods.length; i++) {
+          addModuleFromProps(props.mods[i])
+        }
+      }
       
     }, [])
 

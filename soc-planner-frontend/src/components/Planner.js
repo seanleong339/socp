@@ -10,9 +10,6 @@ import CloseIcon from '@material-ui/icons/Close'
 import Dialog from '@material-ui/core/Dialog'
 import DialogTitle from '@material-ui/core/DialogTitle'
 import axios from '../dbAxios'
-import List from '@material-ui/core/List'
-import ListItem from '@material-ui/core/ListItem'
-import ListItemText from '@material-ui/core/ListItemText'
 
 const useStyles = makeStyles((theme) => ({
   tealPaper: {
@@ -89,7 +86,7 @@ function Planner() {
 
   const [ major, setMajor ] = useState("computer science")
   const [ specialisation, setSpecialisation ] = useState("")
-  const [ plan, setPlan ] = useState({
+  const [ plan, setPlan ] = useState(JSON.parse(localStorage.getItem('studyPlan')) || {
     major: "",
     y1s1: [],
     y1s2: [],
@@ -110,6 +107,11 @@ function Planner() {
   const [ checkCore, setCheckCore ] = useState(false)
   const [ checkMC, setCheckMC ] = useState(false)
   const [ checkSpecialisation, setCheckSpecialisation ] = useState({})
+
+  useEffect(() => { // Local storage to store user's study plan
+    localStorage.setItem('studyPlan', JSON.stringify(plan))
+    console.log(localStorage.getItem('studyPlan'))
+  }, [plan])
 
   function passData(semester, mods, mcs, add) {
     const modsToAdd = {}
@@ -266,7 +268,7 @@ function Planner() {
           <SubmitButton type="submit" onClick={submitForm}>
             SUBMIT
           </SubmitButton>
-          <CheckButton type="submit" disabled={planIsEmpty()} onClick={checkForm}>
+          <CheckButton type="submit"  onClick={checkForm}>
             CHECK
           </CheckButton>
           <PrereqButton onClick={getPrereq}>
@@ -321,12 +323,12 @@ function Planner() {
         </GridStyled>
         <GridStyled item xs={5}>
           <PaperStyled className={classes.tealPaper} elevation={2}>
-            <Semester id={"y1s1"} func={passData} />
+            <Semester id={"y1s1"} func={passData} mods={plan.y1s1} />
           </PaperStyled>
         </GridStyled>
         <GridStyled item xs={5}>
           <PaperStyled className={classes.tealPaper} elevation={2}>
-            <Semester id={"y1s2"} func={passData} />
+            <Semester id={"y1s2"} func={passData} mods={plan.y1s2} />
           </PaperStyled>
         </GridStyled>
         <GridStyled item xs={2}>
@@ -334,12 +336,12 @@ function Planner() {
         </GridStyled>
         <GridStyled item xs={5}>
           <PaperStyled className={classes.tealPaper} elevation={2}>
-            <Semester id={"y2s1"} func={passData} />
+            <Semester id={"y2s1"} func={passData} mods={plan.y2s1} />
           </PaperStyled>
         </GridStyled>
         <GridStyled item xs={5}>
           <PaperStyled className={classes.tealPaper} elevation={2}>
-            <Semester id={"y2s2"} func={passData} />
+            <Semester id={"y2s2"} func={passData} mods={plan.y2s2}/>
           </PaperStyled>
         </GridStyled>
         <GridStyled item xs={2}>
@@ -347,12 +349,12 @@ function Planner() {
         </GridStyled>
         <GridStyled item xs={5}>
           <PaperStyled className={classes.tealPaper} elevation={2}>
-            <Semester id={"y3s1"} func={passData} />
+            <Semester id={"y3s1"} func={passData} mods={plan.y3s1} />
           </PaperStyled>
         </GridStyled>
         <GridStyled item xs={5}>
           <PaperStyled className={classes.tealPaper} elevation={2}>
-            <Semester id={"y3s2"} func={passData} />
+            <Semester id={"y3s2"} func={passData} mods={plan.y3s2}/>
           </PaperStyled>
         </GridStyled>
         <GridStyled item xs={2}>
@@ -360,12 +362,12 @@ function Planner() {
         </GridStyled>
         <GridStyled item xs={5}>
           <PaperStyled className={classes.tealPaper} elevation={2}>
-            <Semester id={"y4s1"} func={passData} />
+            <Semester id={"y4s1"} func={passData} mods={plan.y4s1}/>
           </PaperStyled>
         </GridStyled>
         <GridStyled item xs={5}>
           <PaperStyled className={classes.tealPaper} elevation={2}>
-            <Semester id={"y4s2"} func={passData} />
+            <Semester id={"y4s2"} func={passData} mods={plan.y4s2}/>
           </PaperStyled>
         </GridStyled>
       </Grid>

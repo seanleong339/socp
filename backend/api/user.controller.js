@@ -18,6 +18,7 @@ class userController {
     }
 
     static async apiCheckPlan(req, res) {
+        console.log(req.query)
         let plan = req.query.y1s1.concat(req.query.y1s2, req.query.y2s1, req.query.y2s2, req.query.y3s1, req.query.y3s2, req.query.y4s1, req.query.y4s2)
         let filters = { "major": req.query.major };
         if ("specialisation" in req.query) {
@@ -42,6 +43,7 @@ class userController {
         }
 
         if (parseInt(req.query.totalmc) < 160) {
+            console.log(req.query.totalmc)
             answer.mc = false;
         }
         else {
@@ -57,7 +59,7 @@ class userController {
             filters.specialisation = req.query.specialisation;
         }
         let crit = await criteriaDAO.getCriteria(filters);
-        console.log(crit);
+        console.log('crit',crit);
         res.json(crit);
     }
 }

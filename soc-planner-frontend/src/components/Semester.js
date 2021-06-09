@@ -36,13 +36,6 @@ function Semester(props) {
       
     }, [])
 
-    useEffect(() => {
-      if (props.submit) {
-        setModules([])
-        setCredits(0)
-      }
-    }, [props.submit])
-
     async function addModule(event) {
         event.preventDefault()
         let moduleData
@@ -60,19 +53,25 @@ function Semester(props) {
         setInput('')
         setDialogOpen(false)
         const moduleCodes = modules.map(mod => mod.data.moduleCode) // take only the codes
-        props.func(props.id, [...moduleCodes, moduleData.data.moduleCode])
+        props.func(props.id, [...moduleCodes, moduleData.data.moduleCode], Number(moduleData.data.moduleCredit), true)
     }
 
     function deleteModule(moduleCode) {
-        var filteredModules = []
+        var modCredits
+        var filteredModules = modules
+        
+        console.log('modules:', modules)
         for (let i = 0; i < modules.length; i++) {
-            if (moduleCode !== modules[i].data.moduleCode) {
-                filteredModules.push(modules[i])
-            } else {
-                setCredits(credits - Number(modules[i].data.moduleCredit))
+            if (moduleCode === modules[i].data.moduleCode) {
+                modCredits = Number(modules[i].data.moduleCredit)
+                setCredits(credits - modCredits)
+                filteredModules.splice(i, 1)
+                break
             }
         }
+        const filteredModuleCodes = filteredModules.map(mod => mod.data.moduleCode)
         setModules(filteredModules)
+        props.func(props.id, filteredModuleCodes, modCredits, false)
     }
 
     return (
@@ -82,11 +81,11 @@ function Semester(props) {
           onClose={(e) => setDialogOpen(false)}
           PaperProps={{
             style: {
-              backgroundColor: "#9dbabb",
+              backgroundColor: "white",
             },
           }}
         >
-          <DialogTitle>Search For NUS Module</DialogTitle>
+          <DialogTitle><h4>Search For NUS Module</h4></DialogTitle>
           <DialogContent>
               <Autocomplete
                 style={{width: 495}}
@@ -100,7 +99,7 @@ function Semester(props) {
                 }
                 />
           </DialogContent>
-          <DialogTitle>Or Enter A Custom Module</DialogTitle>
+          <DialogTitle><h4>Or Enter A Custom Module</h4></DialogTitle>
           <DialogContent>
             <form>
               <TextField style={{width: '90%', marginBottom: "20px"}} value={customModuleCode} onChange={e => setCustomModuleCode(e.target.value)} disabled={input} type="text" id="moduleCode" placeholder="Enter Module Code" autoComplete="off" variant="outlined" /> 
@@ -175,7 +174,7 @@ const SemInfo = styled.span `
     display: flex;
     align-items: center;
     white-space: nowrap;
-    color: #8cecf0;
+    color: white;
     font-size: 13px;
     padding-left: 4.3%;
     padding-top: 1%;

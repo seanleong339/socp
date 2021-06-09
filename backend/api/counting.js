@@ -5,7 +5,7 @@ function least(ele, check, num) {
     let count = 0;
     var result = {"mod": []};
     for (var y = 0; y < check.length; y++) {
-        if (ele.indexOf(check[y]) > -1) {
+        if (ele.indexOf(check[y].toUpperCase()) > -1) {
             result.mod.push(check[y])
             count += 1;
             if (count >= num) {

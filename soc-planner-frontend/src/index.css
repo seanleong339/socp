@@ -1,7 +1,6 @@
 body {
   color: white;
-  background: #095256;
-  background-image: url("https://www.transparenttextures.com/patterns/batthern.png");
+  background: #002b36;
   min-width: 1180px;
   margin: 0;
   font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen',
@@ -20,4 +19,5 @@ code {
   font-family: -apple-system, BlinkMacSystemFont, 'Mulish', 'Segoe UI', 'Roboto', 'Oxygen',
   'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue',
   sans-serif;
+  font-weight: 600;
 }

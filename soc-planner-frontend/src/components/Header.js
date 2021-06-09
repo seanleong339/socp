@@ -1,4 +1,4 @@
-import React, { useState } from 'react'
+import React from 'react'
 import styled from 'styled-components'
 import { Link } from 'react-router-dom'
 
@@ -34,8 +34,10 @@ const Container = styled.div `
   overflow: hidden;
   position: fixed;
   top: 0;
-  background: #063537;
+  background: #102e4a;
   z-index: 1;
+  box-shadow: rgb(0 0 0 / 26% ) 0px 26px 30px -10px;
+
 `
 
 

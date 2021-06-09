@@ -10,18 +10,18 @@ function SemesterPlan(props) {
         async function fillData(moduleCodes) {
             var fillModules = []
             for (let i = 0; i < moduleCodes.length; i++) {
-                const codeUpperCase = moduleCodes[i].toUpperCase()
-                const data = axios.get(`https://api.nusmods.com/v2/2020-2021/modules/${codeUpperCase}.json`)
-                fillModules.push(data.catch(err => moduleCodes[i]))
+                const code = moduleCodes[i].toUpperCase()
+                const data = axios.get(`https://api.nusmods.com/v2/2020-2021/modules/${code}.json`).catch(e => code)
+                fillModules.push(data)
+                console.log(fillModules)
             }
             Promise.all(fillModules).then(values => (
-                setModules([...modules, ...values.filter(x => modules.indexOf(x) < 4)])
+              setModules([...modules, ...values])
             ))
-            
         }
 
         if (props.modules) {
-            fillData(props.modules)
+          fillData(props.modules).catch(e => console.log(e))
         }
     }, [])
 

@@ -61,7 +61,7 @@ function ShowPlans() {
   
   useEffect(() => {
     async function getData() {
-      const studyPlanData = await axios.get(`/api/sample`)
+      const studyPlanData = await axios.get(`/sample`)
       setStudyPlans(studyPlanData.data.plans)
     }
     getData()
@@ -74,12 +74,12 @@ function ShowPlans() {
     let studyPlanData
     if (major !== '') {
       if (specialisation !== '') {
-        studyPlanData = await axios.get(`/api/sample?major=${major}&specialisation=${specialisation}`)
+        studyPlanData = await axios.get(`/sample?major=${major}&specialisation=${specialisation}`)
       } else {
-        studyPlanData = await axios.get(`/api/sample?major=${major}`)
+        studyPlanData = await axios.get(`/sample?major=${major}`)
       }
     } else {
-      studyPlanData = await axios.get(`/api/sample`)
+      studyPlanData = await axios.get(`/sample`)
     }
     setMajor('')
     setSpecialisation('')

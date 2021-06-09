@@ -27,21 +27,14 @@ function Semester(props) {
     const [ customModuleCredits, setCustomModuleCredits ] = useState() 
 
     useEffect(() => {
-        if (props.submit === true) {
-            props.func(props.id, modules)
-        } else {
-            setModules([])
-            setCredits(0)
-        }
+      async function getMods() {
+        let modsData = await axios.get("https://api.nusmods.com/v2/2020-2021/moduleList.json")
+        setAllMods(modsData.data)
+      }
 
-        async function getMods() {
-            let modsData = await axios.get("https://api.nusmods.com/v2/2020-2021/moduleList.json")
-            setAllMods(modsData.data)
-        }
-
-        getMods()
-        
-    }, [props.submit])
+      getMods()
+      
+    }, [])
 
     async function addModule(event) {
         event.preventDefault()
@@ -59,26 +52,27 @@ function Semester(props) {
         setCredits(credits + Number(moduleData.data.moduleCredit))
         setInput('')
         setDialogOpen(false)
-    }
-
-    function addCustomModule(event) {
-      
+        const moduleCodes = modules.map(mod => mod.data.moduleCode) // take only the codes
+        props.func(props.id, [...moduleCodes, moduleData.data.moduleCode], Number(moduleData.data.moduleCredit), true)
     }
 
     function deleteModule(moduleCode) {
-        var filteredModules = []
+        var modCredits
+        var filteredModules = modules
+        
+        console.log('modules:', modules)
         for (let i = 0; i < modules.length; i++) {
-            if (moduleCode !== modules[i].data.moduleCode) {
-                filteredModules.push(modules[i])
-            } else {
-                setCredits(credits - Number(modules[i].data.moduleCredit))
+            if (moduleCode === modules[i].data.moduleCode) {
+                modCredits = Number(modules[i].data.moduleCredit)
+                setCredits(credits - modCredits)
+                filteredModules.splice(i, 1)
+                break
             }
         }
+        const filteredModuleCodes = filteredModules.map(mod => mod.data.moduleCode)
         setModules(filteredModules)
+        props.func(props.id, filteredModuleCodes, modCredits, false)
     }
-
-    
-
 
     return (
       <Container>
@@ -87,11 +81,11 @@ function Semester(props) {
           onClose={(e) => setDialogOpen(false)}
           PaperProps={{
             style: {
-              backgroundColor: "#9dbabb",
+              backgroundColor: "white",
             },
           }}
         >
-          <DialogTitle>Search For NUS Module</DialogTitle>
+          <DialogTitle><h4>Search For NUS Module</h4></DialogTitle>
           <DialogContent>
               <Autocomplete
                 style={{width: 495}}
@@ -101,16 +95,16 @@ function Semester(props) {
                 renderInput={(params) => 
                     allMods.length === 0 ?
                     <CircularProgress /> : 
-                    <TextField {...params} variant="outlined" />
+                    <TextField {...params} variant="outlined" disabled={customModuleTitle || customModuleCode || customModuleCredits} />
                 }
                 />
           </DialogContent>
-          <DialogTitle>Or Enter A Custom Module</DialogTitle>
+          <DialogTitle><h4>Or Enter A Custom Module</h4></DialogTitle>
           <DialogContent>
             <form>
-              <TextField style={{width: '90%', marginBottom: "20px"}} value={customModuleCode} onChange={e => setCustomModuleCode(e.target.value)} type="text" id="moduleCode" placeholder="Enter Module Code" autoComplete="off" variant="outlined" /> 
-              <TextField style={{width: '90%', marginBottom: "20px"}} value={customModuleTitle} onChange={e => setCustomModuleTitle(e.target.value)} type="text" id="moduleTitle" placeholder="Enter Module Title" autoComplete="off" variant="outlined" />
-              <TextField style={{width: '90%'}} value={customModuleCredits} onChange={e => setCustomModuleCredits(e.target.value)} type="number" min="0" max="20" id="moduleCredits" placeholder="Module Credits" autoComplete="off" variant="outlined" />
+              <TextField style={{width: '90%', marginBottom: "20px"}} value={customModuleCode} onChange={e => setCustomModuleCode(e.target.value)} disabled={input} type="text" id="moduleCode" placeholder="Enter Module Code" autoComplete="off" variant="outlined" /> 
+              <TextField style={{width: '90%', marginBottom: "20px"}} value={customModuleTitle} onChange={e => setCustomModuleTitle(e.target.value)} disabled={input} type="text" id="moduleTitle" placeholder="Enter Module Title" autoComplete="off" variant="outlined" />
+              <TextField style={{width: '90%'}} value={customModuleCredits} onChange={e => setCustomModuleCredits(e.target.value)} disabled={input} type="number" min="0" max="20" id="moduleCredits" placeholder="Module Credits" autoComplete="off" variant="outlined" />
             </form>
           </DialogContent>
 
@@ -180,7 +174,7 @@ const SemInfo = styled.span `
     display: flex;
     align-items: center;
     white-space: nowrap;
-    color: #8cecf0;
+    color: white;
     font-size: 13px;
     padding-left: 4.3%;
     padding-top: 1%;

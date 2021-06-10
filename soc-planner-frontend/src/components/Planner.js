@@ -268,7 +268,7 @@ function Planner() {
           <SubmitButton type="submit" onClick={submitForm}>
             SUBMIT
           </SubmitButton>
-          <CheckButton type="submit"  onClick={checkForm}>
+          <CheckButton type="submit" disabled={planIsEmpty()} onClick={checkForm}>
             CHECK
           </CheckButton>
           <PrereqButton onClick={getPrereq}>

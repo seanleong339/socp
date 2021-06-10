@@ -29,6 +29,7 @@ class sampleController {
 
     static async apiUpdateVote(req, res) {
         let vote = {};
+      console.log(req)
         vote.id = req.body.id;
         vote.value = req.body.value;
         if (await sampleDAO.voting(vote)) {

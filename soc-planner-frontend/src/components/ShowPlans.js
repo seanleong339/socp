@@ -6,7 +6,9 @@ import Paper from '@material-ui/core/Paper'
 import { makeStyles } from '@material-ui/core'
 import teal from "@material-ui/core/colors/teal"
 import axios from '../dbAxios'
-
+import ThumbUpAltIcon from '@material-ui/icons/ThumbUpAlt'
+import ThumbDownAltIcon from '@material-ui/icons/ThumbDownAlt'
+import IconButton from '@material-ui/core/IconButton'
 
 const useStyles = makeStyles((theme) => ({
     tealPaper: {
@@ -59,14 +61,24 @@ function ShowPlans() {
     const [ specialisation, setSpecialisation ] = useState('')
     const [ studyPlans, setStudyPlans ] = useState([])
   
+    const [ buttonState, setButtonState ] = useState(JSON.parse(localStorage.getItem('buttonState')) || [])
+  
   useEffect(() => {
     async function getData() {
       const studyPlanData = await axios.get(`/sample`)
       setStudyPlans(studyPlanData.data.plans)
     }
+    
     getData()
         
-    }, [])
+  }, [buttonState])
+
+  useEffect(() => {
+    localStorage.setItem('buttonState', JSON.stringify(buttonState))
+    console.log(localStorage.getItem('buttonState'))
+  }, [buttonState])
+
+
 
   async function filter(event) {
     event.preventDefault()
@@ -87,7 +99,70 @@ function ShowPlans() {
     console.log(studyPlans)
   }
 
-    
+  async function reactionClick(id, like, planID) { // id of button, boolean whether like or dislike, id of study plan
+    if (like) {
+      if (buttonState[id] === 1) {
+        const buttonStateClone = [...buttonState]
+        buttonStateClone[id] = 0
+        await axios.post('/sample/voting', {
+          id: planID,
+          value: -1
+        })
+        setButtonState(buttonStateClone)
+      } else if (typeof buttonState[id] === undefined || buttonState[id] === 0) {
+        const buttonStateClone = [...buttonState]
+        buttonStateClone[id] = 1
+        await axios.post('/sample/voting', {
+          id: planID,
+          value: 1
+        })
+        setButtonState(buttonStateClone)
+      } else {
+         const buttonStateClone = [...buttonState]
+         buttonStateClone[id] = 1
+         await axios.post('/sample/voting', {
+          id: planID,
+          value: 1
+         })
+         await axios.post('/sample/voting', {
+           id: planID,
+           value: 1
+         })
+         setButtonState(buttonStateClone)
+      }
+    } else {
+      if (buttonState[id] === -1) {
+        const buttonStateClone = [...buttonState]
+        buttonStateClone[id] = 0
+        await axios.post('/sample/voting', {
+          id: planID,
+          value: 1
+        })
+        setButtonState(buttonStateClone)
+      } else if (typeof buttonState[id] === undefined || buttonState[id] === 0) {
+        const buttonStateClone = [...buttonState]
+        buttonStateClone[id] = -1
+        await axios.post('/sample/voting', {
+          id: planID,
+          value: -1
+        })
+        setButtonState(buttonStateClone)
+
+      } else {
+        const buttonStateClone = [...buttonState]
+        buttonStateClone[id] = -1
+        await axios.post('/sample/voting', {
+          id: planID,
+          value: -1
+        })
+        await axios.post('/sample/voting', {
+          id: planID,
+          value: -1
+        })
+        setButtonState(buttonStateClone)
+      }
+    }
+  } 
 
     return (
       <Container>
@@ -143,11 +218,24 @@ function ShowPlans() {
             <h2>No Plans Found! 😭</h2>
           </ErrorMsg>
         ) : (
-          studyPlans.map((plan) => (
+          studyPlans.map((plan, index) => (
             <>
               <Description>
-                <h5>{plan.major.toUpperCase()}</h5>
-                <h7>{plan.specialisation && plan.specialisation.toUpperCase()}</h7>
+                <h5 style={{color: "#8cecf0"}}>{plan.major.toUpperCase()}</h5>
+                <h7 style={{color: "#8cecf0"}}>{plan.specialisation && plan.specialisation.toUpperCase()}</h7>
+                <ReactionBar>
+                  <ReactionButton onClick={e => reactionClick(index, true, plan._id)} color="primary">
+                    <ThumbUpAltIcon style={{fill: (buttonState[index] === 1) ? "#0288d1" : "white", fontSize: 20}}/>
+                  </ReactionButton>
+
+                  <ReactionButton onClick={e => reactionClick(index, false, plan._id)} color="primary">
+                    <ThumbDownAltIcon style={{fill: (buttonState[index] === -1) ? "#0288d1" : "white", fontSize: 20}} />
+                  </ReactionButton>
+                  {plan.votes 
+                    ? plan.votes === 1 ?
+                      <span>1 Vote</span> : <span>{plan.votes} Votes</span>
+                    : <span>No Votes Yet</span>}
+                </ReactionBar>
               </Description>
 
               <Grid container spacing={3}>
@@ -225,15 +313,16 @@ const Description = styled.div`
   display: flex;
   margin-top: 60px;
   margin-bottom: 10px;
+  align-items: center;
 
   h5 {
     margin-left: 17%;
     margin-right: 1%;
   }
 
-  h2 {
-      margin-left: 17%;
-      margin-bottom: 40%;
+  h7 {
+    margin-bottom: 0.3%;
+    margin-right: 1%;
   }
 
 `
@@ -310,6 +399,13 @@ const FilterButton = styled.button `
     color: #e1f5fe;
     cursor: pointer;
     transition: all 250ms cubic-bezier(0.25, 0.46, 0.45, 0.94) 0s;
+  }
+`
+const ReactionBar = styled.div `
+`
+const ReactionButton = styled(IconButton) `
+  &:hover {
+    color: 'white';
   }
 `
 

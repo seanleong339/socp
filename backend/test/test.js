@@ -174,6 +174,22 @@ describe('Criteria', function () {
                 assert.deepStrictEqual(counting.elective('information security', crit, plan), expect);
             });
 
+            it('should return pass as false if plan does not have at least 3 elective mods', function () {
+                var crit = {
+                    elective: [
+                        'cs3236', 'cs4236', 'ma4261', 'cs4238', 'cs4239', 'cs4257', 'cs4276', 'cs5231',
+                        'cs5321', 'cs5322', 'cs5331', 'cs5332', 'ifs4101', 'ifs4102', 'ifs4103', 'is4204',
+                        'is4233', 'is4234', 'is4302'
+                    ]
+                };
+                var plan = ['CS3236', 'CS4236', 'CS1234', 'IS1234', 'MA1234'];
+                var expect = {
+                    pass: false,
+                    mod: ['cs3236', 'cs4236']
+                };
+                assert.deepStrictEqual(counting.elective('information security', crit, plan), expect);
+            });
+
         });
     });
 });

@@ -24,7 +24,7 @@ class userController {
         });
         answer.pass = answer.core.pass;
         
-        if (filters.specialisation == 'computer science') {
+        if (filters.major == 'computer science') {
             answer.focus = counting.elective(req.query.major, crit.elective, plan);
             answer.pass = answer.elective.pass;
         }

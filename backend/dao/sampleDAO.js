@@ -39,7 +39,7 @@ class sampleDAO {
         let cursor
 
         try {
-            cursor = await sample.find(query);
+            cursor = await sample.find(query).sort({ votes: -1 });
         } catch (e) {
             console.error(`Unable to issue find command, ${e}`)
             return {planList: []}

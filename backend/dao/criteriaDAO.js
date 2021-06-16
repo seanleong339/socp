@@ -1,3 +1,4 @@
+
 let criteria;
 
 class criteriaDAO {
@@ -31,6 +32,8 @@ class criteriaDAO {
             console.error(`Error in querying criteria collection ${e}`);
         }
     }
+
+ 
 }
 
 module.exports = criteriaDAO;

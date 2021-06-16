@@ -299,7 +299,7 @@ function Planner() {
           >
             CHECK
           </CheckButton>
-          <PrereqButton onClick={getPrereq}>Show Prerequisities ></PrereqButton>
+          <PrereqButton onClick={getPrereq}>Show Prerequisities</PrereqButton>
         </form>
       </Heading>
 

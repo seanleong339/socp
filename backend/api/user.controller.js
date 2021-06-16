@@ -49,6 +49,7 @@ class userController {
     }
 
     static async apiSubmitPlan(req, res) {
+        console.log(req)
         var check = await userController.apiCheckPlan(req, res);
         if (check.pass) {
             let submission = req.query;

@@ -5,6 +5,7 @@ import Grid from '@material-ui/core/Grid'
 import Paper from '@material-ui/core/Paper'
 import { makeStyles } from '@material-ui/core'
 import teal from "@material-ui/core/colors/teal"
+import { Link } from "react-router-dom"
 import axios from '../dbAxios'
 import ThumbUpAltIcon from '@material-ui/icons/ThumbUpAlt'
 import ThumbDownAltIcon from '@material-ui/icons/ThumbDownAlt'
@@ -13,7 +14,7 @@ import IconButton from '@material-ui/core/IconButton'
 const useStyles = makeStyles((theme) => ({
     tealPaper: {
       backgroundColor: teal[800]
-    }
+    },
   }))
 
 const specialisations = {
@@ -233,8 +234,17 @@ function ShowPlans() {
                   </ReactionButton>
                   {plan.votes 
                     ? plan.votes === 1 ?
-                      <span>1 Vote</span> : <span>{plan.votes} Votes</span>
-                    : <span>No Votes Yet</span>}
+                      <div style={{marginRight: '5%', whiteSpace: 'nowrap'}}>1 Vote</div> : <div style={{marginRight: '5%', whiteSpace: 'nowrap'}}>{plan.votes} Votes</div>
+                    : <div style={{marginRight: '5%', whiteSpace: 'nowrap'}}>No Votes Yet</div>
+                  }
+                  <ImportLink
+                  to = {{
+                    pathname: '/',
+                    state: { plan }
+                  }}
+                  >
+                    IMPORT PLAN
+                  </ImportLink>
                 </ReactionBar>
               </Description>
 
@@ -402,10 +412,29 @@ const FilterButton = styled.button `
   }
 `
 const ReactionBar = styled.div `
+  display: flex;
+  align-items: center;
 `
 const ReactionButton = styled(IconButton) `
   &:hover {
     color: 'white';
+  }
+`
+const ImportLink = styled(Link) `
+  background: transparent;
+  border: 2px solid #8cecf0;
+  color: #8cecf0;
+  font-size: 13px;
+  letter-spacing: 1px;
+  padding: 4px 12px;
+  border-radius: 20px;
+  text-decoration: none;
+  white-space: nowrap;
+
+  &:hover {
+    color: #c1f3f5;
+    border: 2px solid #c1f3f5;
+    transition: all 250ms cubic-bezier(0.25, 0.46, 0.45, 0.94) 0s;
   }
 `
 

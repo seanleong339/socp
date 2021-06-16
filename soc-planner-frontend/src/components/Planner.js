@@ -10,20 +10,21 @@ import CloseIcon from '@material-ui/icons/Close'
 import Dialog from '@material-ui/core/Dialog'
 import DialogTitle from '@material-ui/core/DialogTitle'
 import axios from '../dbAxios'
+import { useLocation } from 'react-router-dom'
 
 const useStyles = makeStyles((theme) => ({
   tealPaper: {
     backgroundColor: '#00766c'
   },
-  creamPaper: {
-    backgroundColor: '3358ff',
-    opacity: '0.9'
+  closeCheckButton: {
+    backgroundColor: '#001c24',
+    color: '#C8C8C8',
+    '&:hover': {
+      backgroundColor: '#2e4248',
+      color: '#c8c8c8'
+    }
   }
 }))
-
-const Transition = React.forwardRef(function Transition(props, ref) {
-  return <Slide direction="left" ref={ref} {...props} />;
-});
 
 const specialisations = {
   'computer science': [
@@ -61,13 +62,6 @@ function showSpecialisations(major) {
   )
 }
 
-function handleScroll() { // scroll to bottom 
-  window.scroll({
-    top: document.body.offsetHeight,
-    left: 0, 
-    behavior: 'smooth',
-  });
-}
 
 function capitalizeFirstLetterOfEachWord(words) {
   var separateWord = words.toLowerCase().split(' ');
@@ -82,11 +76,18 @@ function capitalizeFirstLetterOfEachWord(words) {
 
 function Planner() {
 
+  const location = useLocation()
   const classes = useStyles()
 
-  const [ major, setMajor ] = useState("computer science")
+  const [ major, setMajor ] = useState(
+    "computer science")
+
   const [ specialisation, setSpecialisation ] = useState("")
-  const [ plan, setPlan ] = useState(JSON.parse(localStorage.getItem('studyPlan')) || {
+
+  const [ plan, setPlan ] = useState(
+    (location.state && location.state.plan) ||
+    JSON.parse(localStorage.getItem('studyPlan')) || 
+  {
     major: "",
     y1s1: [],
     y1s2: [],
@@ -99,18 +100,25 @@ function Planner() {
   })
 
   const [ totalMCs, setTotalMCs] = useState(0)
-  const [ dialogOpen, setDialogOpen] = useState(false)
+  const [ submitDialogOpen, setSubmitDialogOpen ] = useState(false)
+  const [ submitStatus, setSubmitStatus ] = useState({}) // whether submitted plan was valid
+
+  const [ prereqCheck, setPrereqCheck ] = useState(false)
   const [ prereq, setPrereq ] = useState({})
 
   // State on checked status
   const [ checked, setChecked ] = useState(false)
-  const [ checkCore, setCheckCore ] = useState(false)
+  const [ checkCore, setCheckCore ] = useState({})
   const [ checkMC, setCheckMC ] = useState(false)
   const [ checkSpecialisation, setCheckSpecialisation ] = useState({})
 
-  useEffect(() => { // Local storage to store user's study plan
-    localStorage.setItem('studyPlan', JSON.stringify(plan))
-    console.log(localStorage.getItem('studyPlan'))
+
+  useEffect(() => {     
+    
+    localStorage.setItem('studyPlan', JSON.stringify(plan)) // Local storage to store user's study plan
+    console.log(location.state)
+    console.log(plan)
+
   }, [plan])
 
   function passData(semester, mods, mcs, add) {
@@ -139,31 +147,37 @@ function Planner() {
       && plan.y4s2.length === 0
   }
 
-  function changeMajor(major) {
-    setMajor(major)
+  function handleMajorChange(event) {
+    setPrereqCheck(false)
+    setMajor(event.target.value)
     setSpecialisation("")
+  }
+
+  function handleSpecialisationChange(event) {
+    setPrereqCheck(false)
+    setSpecialisation(event.target.value)
   }
 
   async function submitForm(event) {
     event.preventDefault()
+    setSubmitDialogOpen(true)
     let res
     if (specialisation !== "") {
-      res = await axios.post('/', {
+      res = await axios.post('/', null, { params: {
         ...plan,
         major: major,
         specialisation: specialisation
-      })
+      }})
     } else {
-      res = await axios.post('/', {
+      res = await axios.post('/', null, { params: {
         ...plan,
         major: major
-      })
+      }})
     }
 
-    setMajor("computer science")
-    setSpecialisation("")
-    setPlan({})
-    
+    console.log(res)
+    setSubmitStatus(res)
+        
   }
 
   async function checkForm(event) {
@@ -203,15 +217,24 @@ function Planner() {
     }
     console.log('specialisation', checkSpecialisation)
 
-    setChecked(true)
+    if (!checked) {
+      setChecked(true)
+    } else {
+      setChecked(false)
+    }
+    setPrereqCheck(false)
     setCheckCore(res.data.core)
     setCheckMC(res.data.mc)
-    handleScroll()  
   }
 
   async function getPrereq(event) {
     event.preventDefault()
-    setDialogOpen(true)
+    if (!prereqCheck) {
+      setPrereqCheck(true)
+    } else {
+      setPrereqCheck(false)
+    }
+    setChecked(false)
     let res
     if (specialisation !== "") {
       res = await axios.get('/modules', {
@@ -242,7 +265,7 @@ function Planner() {
               name="major"
               id="major"
               value={major}
-              onChange={(e) => changeMajor(e.target.value)}
+              onChange={handleMajorChange}
               required
             >
               <option value="computer science">Computer Science</option>
@@ -255,12 +278,13 @@ function Planner() {
           <Specialisation>
             <span>SPECIALISATION: </span>
             <select
-            className="form-select form-select-sm"
-            name="specialisation"
-            id="specialisation"
-            value={specialisation}
-            onChange={e => setSpecialisation(e.target.value)}
-            disabled={major === 'information security'}>
+              className="form-select form-select-sm"
+              name="specialisation"
+              id="specialisation"
+              value={specialisation}
+              onChange={handleSpecialisationChange}
+              disabled={major === "information security"}
+            >
               {showSpecialisations(major)}
             </select>
           </Specialisation>
@@ -268,158 +292,324 @@ function Planner() {
           <SubmitButton type="submit" onClick={submitForm}>
             SUBMIT
           </SubmitButton>
-          <CheckButton type="submit" disabled={planIsEmpty()} onClick={checkForm}>
+          <CheckButton
+            type="submit"
+            disabled={planIsEmpty()}
+            onClick={checkForm}
+          >
             CHECK
           </CheckButton>
-          <PrereqButton onClick={getPrereq}>
-            Show Prerequisities >
-          </PrereqButton>
+          <PrereqButton onClick={getPrereq}>Show Prerequisities ></PrereqButton>
         </form>
       </Heading>
 
-      <Dialog open={dialogOpen} onClose={e => setDialogOpen(false)} PaperProps={{style: {backgroundColor: "#ffffff"}}} TransitionComponent={Transition}>
-        <DialogTitle>Prerequisites for <span style={{color: '#02669c'}}><b>{capitalizeFirstLetterOfEachWord(major)}</b></span>{specialisation !== "" ? <span style={{color: '#02669c'}}>, <b>{capitalizeFirstLetterOfEachWord(specialisation)}</b></span> : <span></span>}</DialogTitle>
-        <DialogContent>
-
-          {
-            "data" in prereq && "core" in prereq.data ? 
-            <div>
-              <h5> Core Modules: </h5> 
-              <Grid container spacing={1}>
-                {prereq.data.core.map(coreMod => <Grid item xs={3}>{coreMod.toUpperCase()}</Grid>)}
-              </Grid>
-            </div>
-            : <span></span>
-          }
-          <br/>
-          {
-           "data" in prereq && "set1" in prereq.data ? 
-            <div>
-              <h5>Set 1 Modules (Select Any 2): </h5> 
-              <Grid container spacing={1}>
-                {prereq.data.set1.map(coreMod => <Grid item xs={3}>{coreMod.toUpperCase()}</Grid>)}
-              </Grid>
-            </div> 
-            : <span></span>
-          }
-          <br/>
-          {
-            "data" in prereq && "set2" in prereq.data ? 
-            <div>
-              <h5>Set 2 Modules (Select Any 3): </h5> 
-              <Grid container spacing={1}>
-                {prereq.data.set2.map(coreMod => <Grid item xs={3}>{coreMod.toUpperCase()}</Grid>)}
-              </Grid>
-            </div> 
-            : <span></span>
-          }
-          <br/>
-        </DialogContent>
+      <Dialog
+        open={submitDialogOpen}
+        onClose={(e) => setSubmitDialogOpen(false)}
+      >
+        {"data" in submitStatus && submitStatus.data.pass ? (
+          <DialogTitle>Plan was Successfully Submitted!</DialogTitle>
+        ) : "data" in submitStatus && !submitStatus.data.pass ? (
+          <>
+            <DialogTitle>
+              Oops... your plan did not meet certain requirements!
+            </DialogTitle>
+            <DialogContent>
+              {submitStatus.data.core.mod.length > 0 ? (
+                <>
+                  <h5>Core Modules Not Fulfilled: </h5>
+                  <ul>
+                    {submitStatus.data.core.mod.map((mod) => (
+                      <li>{mod.toUpperCase()}</li>
+                    ))}
+                  </ul>
+                </>
+              ) : (
+                <span></span>
+              )}
+              {submitStatus.data.mc === false ? (
+                <h5>Insufficient Modular Credits</h5>
+              ) : (
+                <span></span>
+              )}
+            </DialogContent>
+          </>
+        ) : (
+          <span></span>
+        )}
       </Dialog>
 
-      <Grid container spacing={3}>
-        <GridStyled item xs={2}>
-          <h3>Y1</h3>
-        </GridStyled>
-        <GridStyled item xs={5}>
-          <PaperStyled className={classes.tealPaper} elevation={2}>
-            <Semester id={"y1s1"} func={passData} mods={plan.y1s1} />
-          </PaperStyled>
-        </GridStyled>
-        <GridStyled item xs={5}>
-          <PaperStyled className={classes.tealPaper} elevation={2}>
-            <Semester id={"y1s2"} func={passData} mods={plan.y1s2} />
-          </PaperStyled>
-        </GridStyled>
-        <GridStyled item xs={2}>
-          <h3>Y2</h3>
-        </GridStyled>
-        <GridStyled item xs={5}>
-          <PaperStyled className={classes.tealPaper} elevation={2}>
-            <Semester id={"y2s1"} func={passData} mods={plan.y2s1} />
-          </PaperStyled>
-        </GridStyled>
-        <GridStyled item xs={5}>
-          <PaperStyled className={classes.tealPaper} elevation={2}>
-            <Semester id={"y2s2"} func={passData} mods={plan.y2s2}/>
-          </PaperStyled>
-        </GridStyled>
-        <GridStyled item xs={2}>
-          <h3>Y3</h3>
-        </GridStyled>
-        <GridStyled item xs={5}>
-          <PaperStyled className={classes.tealPaper} elevation={2}>
-            <Semester id={"y3s1"} func={passData} mods={plan.y3s1} />
-          </PaperStyled>
-        </GridStyled>
-        <GridStyled item xs={5}>
-          <PaperStyled className={classes.tealPaper} elevation={2}>
-            <Semester id={"y3s2"} func={passData} mods={plan.y3s2}/>
-          </PaperStyled>
-        </GridStyled>
-        <GridStyled item xs={2}>
-          <h3>Y4</h3>
-        </GridStyled>
-        <GridStyled item xs={5}>
-          <PaperStyled className={classes.tealPaper} elevation={2}>
-            <Semester id={"y4s1"} func={passData} mods={plan.y4s1}/>
-          </PaperStyled>
-        </GridStyled>
-        <GridStyled item xs={5}>
-          <PaperStyled className={classes.tealPaper} elevation={2}>
-            <Semester id={"y4s2"} func={passData} mods={plan.y4s2}/>
-          </PaperStyled>
-        </GridStyled>
-      </Grid>
-      <Grid container spacing={3} style={{marginTop: '3%', marginBottom: '3%'}}>
-        <GridStyled item xs={4}>
-        </GridStyled>
-        <GridStyledCheck item xs={6}>
+      <PlannerInterface>
+        <Grid container spacing={3}>
+          <GridStyled item xs={2}>
+            <h3>Y1</h3>
+          </GridStyled>
+          <GridStyled item xs={5}>
+            <PaperStyled className={classes.tealPaper} elevation={2}>
+              <Semester id={"y1s1"} func={passData} mods={plan.y1s1} />
+            </PaperStyled>
+          </GridStyled>
+          <GridStyled item xs={5}>
+            <PaperStyled className={classes.tealPaper} elevation={2}>
+              <Semester id={"y1s2"} func={passData} mods={plan.y1s2} />
+            </PaperStyled>
+          </GridStyled>
+          <GridStyled item xs={2}>
+            <h3>Y2</h3>
+          </GridStyled>
+          <GridStyled item xs={5}>
+            <PaperStyled className={classes.tealPaper} elevation={2}>
+              <Semester id={"y2s1"} func={passData} mods={plan.y2s1} />
+            </PaperStyled>
+          </GridStyled>
+          <GridStyled item xs={5}>
+            <PaperStyled className={classes.tealPaper} elevation={2}>
+              <Semester id={"y2s2"} func={passData} mods={plan.y2s2} />
+            </PaperStyled>
+          </GridStyled>
+          <GridStyled item xs={2}>
+            <h3>Y3</h3>
+          </GridStyled>
+          <GridStyled item xs={5}>
+            <PaperStyled className={classes.tealPaper} elevation={2}>
+              <Semester id={"y3s1"} func={passData} mods={plan.y3s1} />
+            </PaperStyled>
+          </GridStyled>
+          <GridStyled item xs={5}>
+            <PaperStyled className={classes.tealPaper} elevation={2}>
+              <Semester id={"y3s2"} func={passData} mods={plan.y3s2} />
+            </PaperStyled>
+          </GridStyled>
+          <GridStyled item xs={2}>
+            <h3>Y4</h3>
+          </GridStyled>
+          <GridStyled item xs={5}>
+            <PaperStyled className={classes.tealPaper} elevation={2}>
+              <Semester id={"y4s1"} func={passData} mods={plan.y4s1} />
+            </PaperStyled>
+          </GridStyled>
+          <GridStyled item xs={5}>
+            <PaperStyled className={classes.tealPaper} elevation={2}>
+              <Semester id={"y4s2"} func={passData} mods={plan.y4s2} />
+            </PaperStyled>
+          </GridStyled>
+        </Grid>
+        {prereqCheck ? (
+          <Prereq>
+            <PrereqHeading>
+              <h5>
+                Prerequisites for{" "}
+                <span style={{ color: "#94d6ff" }}>
+                  {capitalizeFirstLetterOfEachWord(major)}
+                </span>
+                {specialisation !== "" ? (
+                  <span style={{ color: "#94d6ff" }}>
+                    , {capitalizeFirstLetterOfEachWord(specialisation)}
+                  </span>
+                ) : (
+                  <span></span>
+                )}
+              </h5>
+              <IconButton
+                className={classes.closeCheckButton}
+                onClick={(e) => setPrereqCheck(false)}
+              >
+                <CloseIcon style={{ fill: "#bebebe" }} />
+              </IconButton>
+            </PrereqHeading>
+            <br />
+            <PrereqContent>
+              {"data" in prereq && "core" in prereq.data ? (
+                <div>
+                  <h6 style={{ color: "#94d6ff" }}>Core Modules:</h6>
+                  <Grid container spacing={1}>
+                    {prereq.data.core.map((coreMod) => (
+                      <Grid item xs={3}>
+                        <span style={{ fontSize: 15 }}>
+                          {coreMod.toUpperCase()}
+                        </span>
+                      </Grid>
+                    ))}
+                  </Grid>
+                </div>
+              ) : (
+                <span></span>
+              )}{" "}
+              <br />
+              {"data" in prereq && "set1" in prereq.data ? (
+                <div>
+                  <h6 style={{ color: "#94d6ff" }}>
+                    Set 1 Modules (Select Any 2):
+                  </h6>
+                  <Grid container spacing={1}>
+                    {prereq.data.set1.map((coreMod) => (
+                      <Grid item xs={3}>
+                        <span style={{fontSize: 15}}>
+                          {coreMod.toUpperCase()}
+                        </span>
+                      </Grid>
+                    ))}
+                  </Grid>
+                </div>
+              ) : (
+                <span></span>
+              )}{" "}
+              <br />
+              {"data" in prereq && "set2" in prereq.data ? (
+                <div>
+                  <h6 style={{ color: "#94d6ff" }}>
+                    Set 2 Modules (Select Any 3):
+                  </h6>
+                  <Grid container spacing={1}>
+                    {prereq.data.set2.map((coreMod) => (
+                      <Grid item xs={3}>
+                        <span style={{fontSize: 15}}>
+                          {coreMod.toUpperCase()}
+                        </span>
+                      </Grid>
+                    ))}
+                  </Grid>
+                </div>
+              ) : (
+                <span></span>
+              )}
+            </PrereqContent>
+          </Prereq>
+        ) : (
+          <span></span>
+        )}
 
-              {
-                checked ? 
-
-                  <StyledCheck>
-                    <CloseButton onClick={e => setChecked(false)}><CloseIcon style={{fill: "#8cecf0"}} /></CloseButton>
-                    <h3 class="header" style={{textDecoration: "underline", textDecorationColor: "#8cecf0", textUnderlineOffset: "6px", textAlign: "center"}}>Check Results</h3><br/>
-                    <div class="results"><span class="left">Plan is Valid:</span> <span class="right">{ checkMC && checkCore ? <CheckCircleIcon style={{fill: "green"}} /> : <CancelIcon style={{fill: "#d45550"}} /> }</span></div><br/>
-                    <div class="results"><span class="left">MCs are fulfilled:</span> <span class="right">{ checkMC ? <CheckCircleIcon style={{fill: "green"}} /> : <CancelIcon style={{fill: "#d45550"}} /> }</span></div><br/>
-                    <div class="results"><span class="left">Core Modules are fulfilled:</span> <span class="right">{ checkCore ? <CheckCircleIcon style={{fill: "green"}} /> : <CancelIcon style={{fill: "#d45550"}} /> }</span> </div><br/>
-                    {
-                      (specialisation !== "" && Object.keys(checkSpecialisation).length > 0) 
-                        ? <div>
-                            <div class="results"><span class="left">Specialisation fulfilled:</span> 
-                              <span class="right">{Object.keys(checkSpecialisation)
-                                                    .every((key) => checkSpecialisation[key].hasOwnProperty("pass") ? checkSpecialisation[key].pass === true : true) ? <CheckCircleIcon style={{fill: "green"}} /> : <CancelIcon style={{fill: "#d45550"}} />}
-                              </span>
-                            </div><br/>
-
-                              <div class="modList">
-                              {
-                                checkSpecialisation.set1 ? 
-                                  <span class="left">Set 1 Modules Satisfied (select any 2): &nbsp;&nbsp; { checkSpecialisation.set1.mod.length > 0 ? <ul>{checkSpecialisation.set1.mod.map(mod => <li>{mod.toUpperCase()}</li>)}</ul> : <span>-</span> } </span> : <span></span>
-                              }
-                            </div>
-                            <div class="modList">
-                              {
-                                checkSpecialisation.set2 ?
-                                <span class="left">Set 2 Modules Satisfied (select any 3): &nbsp;&nbsp; { checkSpecialisation.set2.mod.length > 0 ? <ul>{checkSpecialisation.set2.mod.map(mod => <li>{mod.toUpperCase()}</li>)}</ul> : <span>-</span> } </span> : <span></span>
-                              }
-                            </div>
-                            
-                          </div>
-                        : <div></div>
-                    }
-                  </StyledCheck>
-
-                : <div></div>
-              }       
-
-        </GridStyledCheck>
-        <GridStyled item xs={2}>
-        </GridStyled>
-      </Grid>
-      
+        {checked ? (
+          <Prereq>
+            <PrereqHeading>
+              <h5>Check Results</h5>
+              <IconButton
+                className={classes.closeCheckButton}
+                onClick={(e) => setChecked(false)}
+              >
+                <CloseIcon style={{ fill: "#bebebe" }} />
+              </IconButton>
+            </PrereqHeading>
+            <PrereqContent>
+              <br />
+              <CheckResults>
+                <div class="left">
+                  <h6 style={{ color: "#94d6ff" }}>Plan is Valid:</h6>
+                </div>
+                <div class="right">
+                  {checkMC && checkCore ? (
+                    <CheckCircleIcon style={{ fill: "green" }} />
+                  ) : (
+                    <CancelIcon style={{ fill: "#d45550" }} />
+                  )}
+                </div>
+                
+                
+              </CheckResults>
+              <br />
+              <CheckResults>
+                <div class="left">
+                  <h6 style={{ color: "#94d6ff" }}>MCs are Fulfilled:</h6>
+                </div>
+                <div class="right">
+                  {checkMC ? (
+                    <CheckCircleIcon style={{ fill: "green" }} />
+                  ) : (
+                    <CancelIcon style={{ fill: "#d45550" }} />
+                  )}
+                </div>
+                
+               
+              </CheckResults>
+              <br />
+              <CheckResults>
+                <div class="left">
+                  <h6 style={{ color: "#94d6ff" }}>Core Modules Fulfilled:</h6>
+                </div>
+                <div class="right">
+                  {checkCore.pass ? (
+                    <CheckCircleIcon style={{ fill: "green" }} />
+                  ) : (
+                    <CancelIcon style={{ fill: "#d45550" }} />
+                  )}
+                </div>
+                
+                
+              </CheckResults>
+              {!checkCore.pass ? (
+                <div>
+                  <br />
+                  <h6 style={{ color: "#94d6ff" }}>Core Modules Yet To Take:</h6>
+                  <Grid container spacing={1}>
+                    {checkCore.mod ? (
+                      checkCore.mod.map((x) => (
+                        <Grid item spacing={3}>
+                          <span style={{fontSize: 15}}>
+                            {x.toUpperCase()}
+                          </span>
+                          
+                        </Grid>
+                      ))
+                    ) : (
+                      <span></span>
+                    )}
+                  </Grid>
+                </div>
+              ) : (
+                <span></span>
+              )}
+              {checkSpecialisation.set1 ? (
+                <div>
+                  <br />
+                  <h6 style={{ color: "#94d6ff" }}>
+                    Set 1 Modules Satisfied (select any 2):{" "}
+                  </h6>
+                  {checkSpecialisation.set1.mod.length > 0 ? (
+                    <Grid container spacing={1}>
+                      {checkSpecialisation.set1.mod.map((x) => (
+                        <Grid item xs={3}>
+                          <span style={{fontSize: 15}}>
+                            {x.toUpperCase()}
+                          </span>
+                        </Grid>
+                      ))}
+                    </Grid>
+                  ) : (
+                    <span>-</span>
+                  )}
+                </div>
+              ) : (
+                <span></span>
+              )}
+              {checkSpecialisation.set2 ? (
+                <div>
+                  <br />
+                  <h6 style={{ color: "#94d6ff" }}>
+                    Set 2 Modules Satisfied (select any 3):{" "}
+                  </h6>
+                  {checkSpecialisation.set2.mod.length > 0 ? (
+                    <Grid container spacing={1}>
+                      {checkSpecialisation.set2.mod.map((x) => (
+                        <Grid item xs={3}>
+                          <span style={{fontSize: 15}}>
+                            {x.toUpperCase()}
+                          </span>
+                        </Grid>
+                      ))}
+                    </Grid>
+                  ) : (
+                    <span>-</span>
+                  )}
+                </div>
+              ) : (
+                <span></span>
+              )}
+            </PrereqContent>
+          </Prereq>
+        ) : (
+          <span></span>
+        )}
+      </PlannerInterface>
     </Container>
   );
 }
@@ -434,41 +624,8 @@ const PaperStyled = styled(Paper) `
   min-width: 200px;
   height: 100%;
 `
-const StyledCheck = styled.div `
-  min-height: 150px;
-  height: 100%;
-  padding: 30px 20px;
-  background: #001c24;
-  box-shadow: rgb(0 0 0 / 26% ) 0px 20px 30px 10px;
-  border-radius: 15px;
-
-  .results {
-        width: 300px;
-        display: flex;
-        margin: 0 auto;
-      }
-
-  .left {
-    font-size: 16px;
-    font-family: -apple-system, BlinkMacSystemFont, 'Mulish', 'Segoe UI', 'Roboto', 'Oxygen',
-    'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue',
-    sans-serif;
-  }
-
-  .right {
-    margin-right: 0;
-    margin-left: auto;
-  }
-
-  .modList {
-    width: 300px;
-    margin: 0 auto;
-    
-    ul li {
-      display: inline;
-      margin: 0 5px;
-    }
-  }
+const PlannerInterface = styled.div `
+  display: flex;
 `
 const GridStyled = styled(Grid)`
   h3 {
@@ -476,9 +633,6 @@ const GridStyled = styled(Grid)`
     font-weight: 10;
     text-align: center;
   }
-`
-const GridStyledCheck = styled(Grid) `
-  margin-top: 5%;
 `
 const Heading = styled.div `
     display: flex;
@@ -517,6 +671,16 @@ const Major = styled.div `
   margin-right: 3%;
   span {
       margin-right: 2%;
+  }
+`
+const CheckResults = styled.div `
+  display: flex;
+  .left {
+
+  }
+  .right {
+    margin-right: 0;
+    margin-left: auto;
   }
 `
 const Specialisation = styled.div `
@@ -564,9 +728,31 @@ const PrereqButton = styled.button `
     transition: all 250ms cubic-bezier(0.25, 0.46, 0.45, 0.94) 0s;
   }
 `
+const Prereq = styled.div `
+  width: 35%;
+  background: #001c24;
+  margin-left: 1.3%;
+  border-radius: 5px;
+  box-shadow: rgb(0 0 0 / 20% ) 0px 20px 30px 10px;
+  transition: all 250ms cubic-bezier(0.25, 0.46, 0.45, 0.94) 0s;
 
-const CloseButton = styled(IconButton) `
-  float: right;
+`
+const PrereqHeading = styled.div `
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 95%;
+  padding-top: 3%;
+  margin: 0 auto;
+  h5 {
+    white-space: normal;
+    font-size: 16px;
+    line-height: 1.5;
+  }
+`
+const PrereqContent = styled.div `
+  width: 90%;
+  margin: 0 auto;
 `
 const CheckButton = styled.button `
   background: #388e3c;
@@ -592,33 +778,6 @@ const CheckButton = styled.button `
     pointer-events: none;
   }
 `
-// const CheckResults = styled.div  `
-//   margin-top: 6%;
-//   margin-left: 40%;
 
-//   .results {
-//     width: 300px;
-//     display: flex;
-//   }
-
-//   .left {
-//     font-size: 16px;
-//     font-weight: 100;
-//   }
-
-//   .right {
-//     margin-right: 0;
-//     margin-left: auto;
-//   }
-
-//   .modList {
-    
-//     ul li {
-//       display: inline;
-//       margin: 0 5px;
-//     }
-//   }
-
-// `
 
 export default Planner

@@ -25,11 +25,11 @@ class userController {
         answer.pass = answer.core.pass;
         
         if (filters.major == 'computer science') {
-            answer.focus = counting.elective(req.query.major, crit.elective, plan);
+            answer.focus = counting.elective(req.query.major, crit, plan);
             answer.pass = answer.elective.pass;
         }
         else {
-            answer.elective = counting.elective(req.query.major, crit.elective, plan);
+            answer.elective = counting.elective(req.query.major, crit, plan);
             answer.pass = answer.elective.pass;
         }
 

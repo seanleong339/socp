@@ -16,3 +16,5 @@ sketch
 ./backend/node_modules
 ./backend/json format.js
 ./backend/.env
+./backend/package-lock.json
+./package-lock.json

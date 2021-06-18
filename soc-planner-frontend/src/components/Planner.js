@@ -79,8 +79,7 @@ function Planner() {
   const location = useLocation()
   const classes = useStyles()
 
-  const [ major, setMajor ] = useState(
-    "computer science")
+  const [ major, setMajor ] = useState("computer science")
 
   const [ specialisation, setSpecialisation ] = useState("")
 
@@ -175,16 +174,24 @@ function Planner() {
       }})
     }
 
-    console.log(res)
     setSubmitStatus(res)
-        
+    return res    
   }
 
   async function checkForm(event) {
     event.preventDefault()
-    
+    if (!checked) {
+      setChecked(true)
+    } else {
+      setChecked(false)
+    }
+
+    if (prereqCheck) {
+      setPrereqCheck(false)
+    }
     let res
     if (specialisation !== "") {
+      console.log({...plan, major: major, specialisation: specialisation, totalmc: totalMCs})
       res = await axios.get('/check', {
         params: {
           ...plan,
@@ -193,8 +200,8 @@ function Planner() {
           totalmc: totalMCs
         }
       })
-      
     } else {
+      console.log({...plan, major: major, totalmc: totalMCs})
       res = await axios.get('/check', {
         params: {
         ...plan,
@@ -203,7 +210,6 @@ function Planner() {
         }
       })
     }
-    console.log(res)
 
     if (specialisation !== "") {
       console.log(specialisation)
@@ -217,11 +223,7 @@ function Planner() {
     }
     console.log('specialisation', checkSpecialisation)
 
-    if (!checked) {
-      setChecked(true)
-    } else {
-      setChecked(false)
-    }
+    
     setPrereqCheck(false)
     setCheckCore(res.data.core)
     setCheckMC(res.data.mc)

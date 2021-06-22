@@ -5,7 +5,7 @@ const user = require("./api/user.route.js")
 
 const app = express()
 
-app.use(cors({ origin: true }));
+app.use(cors());
 app.use(express.json())
 
 app.use("/sample", sample)

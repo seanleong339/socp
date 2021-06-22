@@ -10,6 +10,7 @@ class userController {
         if ("specialisation" in req.query) {
             filters.specialisation = req.query.specialisation;
         }
+        console.log(filters)
         let crit = await criteriaDAO.getCriteria(filters);
         if (crit == null) {
             res.send("No criteria found for this major");
@@ -26,7 +27,7 @@ class userController {
         
         if (filters.major == 'computer science') {
             answer.focus = counting.elective(req.query.major, crit, plan);
-            answer.pass = answer.elective.pass;
+            answer.pass = answer.focus.pass;
         }
         else {
             answer.elective = counting.elective(req.query.major, crit, plan);

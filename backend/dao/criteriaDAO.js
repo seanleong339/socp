@@ -21,7 +21,10 @@ class criteriaDAO {
             query = { "specialisation": { $eq: filters["specialisation"] } }
         }
         else {
-            query = { "major": { $eq: filters["major"] } }
+            query = {
+                "major": { $eq: filters["major"] },
+                "specialisation": { $exists: false }
+            }
         }
 
         let doc

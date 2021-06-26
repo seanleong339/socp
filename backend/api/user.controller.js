@@ -46,11 +46,21 @@ class userController {
             answer.mc = false;
         }
 
-        if (answer.core.pass && answer.elective.pass && answer.set1.pass && answer.set2.pass && answer.mc) {
-            answer.pass = true;
+        if (filters.major!= 'computer science' && filters.specialisation) {
+            if (answer.core.pass && answer.elective.pass && answer.set1.pass && answer.set2.pass && answer.mc) {
+                answer.pass = true;
+            }
+            else {
+                answer.pass = false;
+            }
         }
         else {
-            answer.pass = false;
+            if (answer.core.pass && answer.elective.pass && answer.mc) {
+                answer.pass = true;
+            }
+            else {
+                answer.pass = false;
+            }
         }
 
         if (req.query.submit) {

@@ -3,15 +3,17 @@ const cors = require("cors")
 const sample = require("./api/sample.route.js")
 const user = require("./api/user.route.js")
 
-const app = express()
+const app = express();
 
-app.use(cors({ origin: true }));
-app.use(express.json())
+app.use(cors());
+app.use(express.json());
 
-app.use("/sample", sample)
-app.use("/", user) //removed api/user
+app.use("/sample", sample);
+
+app.use("/", user);
+
 app.use("*", (req, res) => {
-    res.status(404).json({error:"not found"})
-})
+    res.status(404).json({ error: "not found" })
+});
 
 module.exports = app;

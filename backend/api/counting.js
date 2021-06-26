@@ -45,6 +45,7 @@ function modin(ele, check) {
     return result;
 }
 
+// input major, crit is criteria from database and ele is the modules in the user plan.
 function elective(major, crit, ele) {
     let result = {};
     if (major == "business analytics") {

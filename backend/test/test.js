@@ -2,7 +2,7 @@ var assert = require('assert');
 const counting = require('../api/counting.js')
 
 
-describe('Criteria', function () {
+describe('counting.js', function () {
     describe('Least', function () {
         it('should return pass as true and modules taken when the least requirement is met', function () {
             var ele = ['CS1231', 'CS2100', 'CS2030', 'CS2040'];
@@ -191,5 +191,37 @@ describe('Criteria', function () {
             });
 
         });
+
+        describe('Computer Science', function () {
+            it('Should return pass as true if at least 3 primary mods are taken', function () {
+                var crit = {
+                    elective: {
+                        primary: ['cs2104', 'cs3211', 'cs4212', 'cs4215']
+                    }
+                };
+                var plan = ['CS2104', 'CS3211', 'CS1234', 'ma4567', 'CS4212']
+                var expect = {
+                    pass: true,
+                    mod: ['cs2104', 'cs3211', 'cs4212']
+                };
+                assert.deepStrictEqual(counting.elective('computer science', crit, plan), expect);
+            });
+
+            it('Should return pass as false if less than 3 primary mods are taken', function () {
+                var crit = {
+                    elective: {
+                        primary: ['cs2104', 'cs3211', 'cs4212', 'cs4215']
+                    }
+                };
+                var plan = ['CS2104', 'CS3211', 'CS1234', 'MA4567']
+                var expect = {
+                    pass: false,
+                    mod: ['cs2104', 'cs3211']
+                };
+                assert.deepStrictEqual(counting.elective('computer science', crit, plan), expect);
+            });
+
+        });
     });
 });
+

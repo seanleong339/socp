@@ -1,14 +1,12 @@
 const express = require("express");
 const userCtrl = require("./user.controller.js")
-const cors = require('cors');
-const app = require("../server.js");
-
-app.use
 
 const router = express.Router();
 
 router.route('/').post(userCtrl.apiSubmitPlan);
+
 router.route('/check').get(userCtrl.apiCheckPlan);
-router.route('/modules').get(userCtrl.apiGetModules)
+
+router.route('/modules').get(userCtrl.apiGetModules);
 
 module.exports = router;

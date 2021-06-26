@@ -28,40 +28,42 @@ const useStyles = makeStyles((theme) => ({
 
 const specialisations = {
   'computer science': [
-    {name: "Artificial Intelligence", value: "ai"},
-    {name: "Algorithms & Theory", value: "theory and algo"},
-    {name: "Computer Graphics and Games", value: "computer graphics"},
+    {name: "Artificial Intelligence", value: "artificial intelligence"},
+    {name: "Algorithms and Theory", value: "algorithms and theory"},
+    {name: "Computer Graphics and Games", value: "computer graphics and games"},
     {name: "Computer Security", value: "computer security"},
     {name: "Database Systems", value: "database systems"},
-    {name: "Multimedia Information Retrieval", value: "multimedia info"},
+    {name: "Multimedia Information Retrieval", value: "multimedia information retrieval"},
     {name: "Networking and Distributed Systems", value: "networking and distrbuted systems"},
     {name:  "Parallel Computing", value: "parallel computing"},
     {name: "Programming Languages", value: "programming languages"},
     {name: "Software Engineering", value: "software engineering"},
   ],
   'business analytics': [
+    {name: "General", value: ""},
     {name: "Financial Analytics", value: "financial analytics"},
     {name: "Marketing Analytics", value: "marketing analytics"}
   ], 
   'information systems': [
+    {name: "General", value: ""},
     {name: "Digital Innovation", value: "digital innovation"},
     {name: "Electronic Commerce", value: "electronic commerce"},
     {name: "Financial Technology", value: "financial technology"}
   ], 
-  'information security': []
+  'information security': [
+    {name: "General", value: ""},
+  ]
 }
 
 function showSpecialisations(major) {
   return (
     <>
-    <option value="">General</option>
-    {specialisations[major].map(x => (
+    { specialisations[major].map(x => (
       <option value={x.value}>{x.name}</option>
     ))}
     </>
   )
 }
-
 
 function capitalizeFirstLetterOfEachWord(words) {
   var separateWord = words.toLowerCase().split(' ');
@@ -72,17 +74,15 @@ function capitalizeFirstLetterOfEachWord(words) {
   return separateWord.join(' ');
 }
 
-
-
 function Planner() {
 
   const location = useLocation()
+
   const classes = useStyles()
 
-  const [ major, setMajor ] = useState(
-    "computer science")
+  const [ major, setMajor ] = useState("computer science")
 
-  const [ specialisation, setSpecialisation ] = useState("")
+  const [ specialisation, setSpecialisation ] = useState("artificial intelligence")
 
   const [ plan, setPlan ] = useState(
     (location.state && location.state.plan) ||
@@ -107,23 +107,22 @@ function Planner() {
   const [ prereq, setPrereq ] = useState({})
 
   // State on checked status
-  const [ checked, setChecked ] = useState(false)
-  const [ checkCore, setCheckCore ] = useState({})
-  const [ checkMC, setCheckMC ] = useState(false)
-  const [ checkSpecialisation, setCheckSpecialisation ] = useState({})
+  const [ checked, setChecked ] = useState(false) // if plan is being checked
+  const [ checkCore, setCheckCore ] = useState({}) // if core mods pass
+  const [ checkMC, setCheckMC ] = useState(false) // if mcs are fulfilled
+  const [ checkElective, setCheckElective ] = useState({}) // result of elective (for bza, infosys)
+  const [ checkSpecialisation, setCheckSpecialisation ] = useState({}) // result of specialisation/focus area
 
 
   useEffect(() => {     
-    
     localStorage.setItem('studyPlan', JSON.stringify(plan)) // Local storage to store user's study plan
-    console.log(location.state)
-    console.log(plan)
 
   }, [plan])
 
   function passData(semester, mods, mcs, add) {
     const modsToAdd = {}
     modsToAdd[semester] = mods
+    console.log('MODS TO ADD', modsToAdd)
     setPlan((prevState) => {
       let merged = {...prevState, ...modsToAdd}
       return merged
@@ -150,12 +149,30 @@ function Planner() {
   function handleMajorChange(event) {
     setPrereqCheck(false)
     setMajor(event.target.value)
-    setSpecialisation("")
+    setPlan(plan.major = event.target.value)
+    if (event.target.value === "computer science") {
+      setSpecialisation("artificial intelligence")
+      const updatedPlan = plan
+      updatedPlan.specialisation = "artificial intelligence"
+      setPlan(updatedPlan)
+    } else {
+      setSpecialisation("")
+      const updatedPlan = plan
+      delete updatedPlan.specialisation
+      setPlan(updatedPlan)
+    }
   }
 
   function handleSpecialisationChange(event) {
     setPrereqCheck(false)
     setSpecialisation(event.target.value)
+    const updatedPlan = plan
+    if (event.target.value !== "") {
+      updatedPlan.specialisation = event.target.value
+    } else {
+      delete updatedPlan.specialisation
+    }
+    setPlan(updatedPlan)
   }
 
   async function submitForm(event) {
@@ -175,14 +192,21 @@ function Planner() {
       }})
     }
 
-    console.log(res)
     setSubmitStatus(res)
-        
+    return res    
   }
 
   async function checkForm(event) {
     event.preventDefault()
-    
+    if (!checked) {
+      setChecked(true)
+    } else {
+      setChecked(false)
+    }
+
+    if (prereqCheck) {
+      setPrereqCheck(false)
+    }
     let res
     if (specialisation !== "") {
       res = await axios.get('/check', {
@@ -193,7 +217,6 @@ function Planner() {
           totalmc: totalMCs
         }
       })
-      
     } else {
       res = await axios.get('/check', {
         params: {
@@ -202,38 +225,49 @@ function Planner() {
         totalmc: totalMCs
         }
       })
+      
     }
-    console.log(res)
+
+    if (res.data.elective) {
+      setCheckElective(prevState => ({...prevState, elective: res.data.elective}))
+    } else {
+      let updatedCheckElective = checkElective
+      delete checkElective.elective
+      setCheckElective(prevState => updatedCheckElective)
+    }
+
+    // conditions to update check results for specialisation
+
+    let updateCheckSpecialisation = {}
 
     if (specialisation !== "") {
-      console.log(specialisation)
-      setCheckSpecialisation(prevState => ({...prevState, specialisation: specialisation}))
+      updateCheckSpecialisation.specialisation = specialisation
     }
-    if (res.data.set1) {
-      setCheckSpecialisation(prevState => ({...prevState, set1: res.data.set1}))
-    }
-    if (res.data.set2) {
-      setCheckSpecialisation(prevState => ({...prevState, set2: res.data.set2}))
-    }
-    console.log('specialisation', checkSpecialisation)
 
-    if (!checked) {
-      setChecked(true)
-    } else {
-      setChecked(false)
+    if (res.data.set1) {
+      updateCheckSpecialisation.set1 = res.data.set1
     }
+
+    if (res.data.set2) {
+      updateCheckSpecialisation.set2 = res.data.set2
+    }
+
+    if (res.data.focus) {
+      updateCheckSpecialisation.focus = res.data.focus
+    }
+
+    setCheckSpecialisation(updateCheckSpecialisation)
+
     setPrereqCheck(false)
     setCheckCore(res.data.core)
     setCheckMC(res.data.mc)
+    console.log(res)
   }
 
   async function getPrereq(event) {
     event.preventDefault()
-    if (!prereqCheck) {
-      setPrereqCheck(true)
-    } else {
-      setPrereqCheck(false)
-    }
+    
+
     setChecked(false)
     let res
     if (specialisation !== "") {
@@ -251,12 +285,18 @@ function Planner() {
       })
     }
     setPrereq(res)
+    if (!prereqCheck) {
+      setPrereqCheck(true)
+    } else {
+      setPrereqCheck(false)
+    }
+    
   }
 
   return (
     <Container>
       <Heading>
-        <h2 class="header">Module Planner</h2>
+        <h2 class="header" data-testid="planner_header">Module Planner</h2>
         <form>
           <Major>
             <span>MAJOR: </span>
@@ -264,6 +304,7 @@ function Planner() {
               className="form-select form-select-sm"
               name="major"
               id="major"
+              data-testid="planner_major"
               value={major}
               onChange={handleMajorChange}
               required
@@ -281,6 +322,7 @@ function Planner() {
               className="form-select form-select-sm"
               name="specialisation"
               id="specialisation"
+              data-testid="planner_specialisation"
               value={specialisation}
               onChange={handleSpecialisationChange}
               disabled={major === "information security"}
@@ -289,7 +331,7 @@ function Planner() {
             </select>
           </Specialisation>
 
-          <SubmitButton type="submit" onClick={submitForm}>
+          <SubmitButton data-testid="planner_submitButton" type="submit" onClick={submitForm}>
             SUBMIT
           </SubmitButton>
           <CheckButton
@@ -308,25 +350,28 @@ function Planner() {
         onClose={(e) => setSubmitDialogOpen(false)}
       >
         {"data" in submitStatus && submitStatus.data.pass ? (
-          <DialogTitle>Plan was Successfully Submitted!</DialogTitle>
+          <DialogTitle data-testid="planner_submitDialog">Plan was Successfully Submitted!</DialogTitle>
         ) : "data" in submitStatus && !submitStatus.data.pass ? (
           <>
-            <DialogTitle>
+            <DialogTitle data-testid="planner_submitDialog">
               Oops... your plan did not meet certain requirements!
             </DialogTitle>
             <DialogContent>
               {submitStatus.data.core.mod.length > 0 ? (
                 <>
                   <h5>Core Modules Not Fulfilled: </h5>
-                  <ul>
+                  <Grid container spacing={1}>
                     {submitStatus.data.core.mod.map((mod) => (
-                      <li>{mod.toUpperCase()}</li>
+                      <Grid item xs={3}>
+                        {mod.toUpperCase()}
+                      </Grid>
                     ))}
-                  </ul>
+                  </Grid>
                 </>
               ) : (
                 <span></span>
               )}
+              <br />
               {submitStatus.data.mc === false ? (
                 <h5>Insufficient Modular Credits</h5>
               ) : (
@@ -337,6 +382,7 @@ function Planner() {
         ) : (
           <span></span>
         )}
+        <br />
       </Dialog>
 
       <PlannerInterface>
@@ -435,7 +481,90 @@ function Planner() {
               ) : (
                 <span></span>
               )}{" "}
-              <br />
+            </PrereqContent>
+            <br />
+            <PrereqContent>
+              {"data" in prereq && "elective" in prereq.data ? (
+                <div>
+                  <h6 style={{ color: "#94d6ff" }}>Electives:</h6>
+                  {major === "business analytics" ? ( // if major is business analytics
+                    <div>
+                      <h7>
+                        <b>List A:</b>
+                      </h7>
+                      <Grid container spacing={1}>
+                        {prereq.data.elective.lista.map((coreMod) => (
+                          <Grid item xs={3}>
+                            {coreMod.toUpperCase()}
+                          </Grid>
+                        ))}
+                      </Grid>
+                      <br />
+                      <h7>
+                        <b>List B:</b>
+                      </h7>
+                      <Grid container spacing={1}>
+                        {prereq.data.elective.listb.map((coreMod) => (
+                          <Grid item xs={3}>
+                            {coreMod.toUpperCase()}
+                          </Grid>
+                        ))}
+                      </Grid>
+                      <br />
+                      <h7>
+                        <b>List C:</b>
+                      </h7>
+                      <Grid container spacing={1}>
+                        {prereq.data.elective.listc.map((coreMod) => (
+                          <Grid item xs={3}>
+                            {coreMod.toUpperCase()}
+                          </Grid>
+                        ))}
+                      </Grid>
+                      <br />
+                    </div>
+                  ) : major === "computer science" ? ( // else if major is computer science
+                    <div>
+                      <h7>
+                        <b>Primaries:</b>
+                      </h7>
+                      <Grid container spacing={1}>
+                        {prereq.data.elective.primary.map((mod) => (
+                          <Grid item xs={3}>
+                            {mod.toUpperCase()}
+                          </Grid>
+                        ))}
+                      </Grid>
+                      <br />
+                      <h7>
+                        <b>Electives:</b>
+                      </h7>
+                      <Grid container spacing={1}>
+                        {prereq.data.elective.electives.map((mod) => (
+                          <Grid item xs={3}>
+                            {mod.toUpperCase()}
+                          </Grid>
+                        ))}
+                      </Grid>
+                    </div>
+                  ) : (
+                    <div>
+                      <Grid container spacing={1}>
+                        {prereq.data.elective.map((coreMod) => (
+                          <Grid item xs={3}>
+                            {coreMod.toUpperCase()}
+                          </Grid>
+                        ))}
+                      </Grid>
+                    </div>
+                  )}
+                </div>
+              ) : (
+                <span></span>
+              )}
+            </PrereqContent>
+            <br />
+            <PrereqContent>
               {"data" in prereq && "set1" in prereq.data ? (
                 <div>
                   <h6 style={{ color: "#94d6ff" }}>
@@ -444,7 +573,7 @@ function Planner() {
                   <Grid container spacing={1}>
                     {prereq.data.set1.map((coreMod) => (
                       <Grid item xs={3}>
-                        <span style={{fontSize: 15}}>
+                        <span style={{ fontSize: 15 }}>
                           {coreMod.toUpperCase()}
                         </span>
                       </Grid>
@@ -463,7 +592,7 @@ function Planner() {
                   <Grid container spacing={1}>
                     {prereq.data.set2.map((coreMod) => (
                       <Grid item xs={3}>
-                        <span style={{fontSize: 15}}>
+                        <span style={{ fontSize: 15 }}>
                           {coreMod.toUpperCase()}
                         </span>
                       </Grid>
@@ -503,8 +632,6 @@ function Planner() {
                     <CancelIcon style={{ fill: "#d45550" }} />
                   )}
                 </div>
-                
-                
               </CheckResults>
               <br />
               <CheckResults>
@@ -518,10 +645,10 @@ function Planner() {
                     <CancelIcon style={{ fill: "#d45550" }} />
                   )}
                 </div>
-                
-               
               </CheckResults>
+
               <br />
+
               <CheckResults>
                 <div class="left">
                   <h6 style={{ color: "#94d6ff" }}>Core Modules Fulfilled:</h6>
@@ -533,32 +660,87 @@ function Planner() {
                     <CancelIcon style={{ fill: "#d45550" }} />
                   )}
                 </div>
-                
-                
               </CheckResults>
+
+              <br />
+
+              {
+                "elective" in checkElective ?  
+                <CheckResults>
+                  <div class="left">
+                    <h6 style={{ color: "#94d6ff" }}>Elective Fulfilled:</h6>
+                  </div>
+                  <div class="right">
+                    {checkElective.pass ? (
+                      <CheckCircleIcon style={{ fill: "green" }} />
+                    ) : (
+                      <CancelIcon style={{ fill: "#d45550" }} />
+                    )}
+                  </div>
+                </CheckResults> : <span></span>
+              }
+
+              {
+                "focus" in checkSpecialisation ? 
+                <CheckResults>
+                  <div class="left">
+                    <h6 style={{ color: "#94d6ff"}}>Focus Area Fulfilled:</h6>
+                  </div>
+                  <div class="right">
+                    {
+                      checkSpecialisation.focus.pass ? (
+                        <CheckCircleIcon style={{ fill: "green"}} />
+                      ) : (
+                        <CancelIcon style={{ fill: "#d45550"}} />
+                      )
+                    }
+                  </div>
+                </CheckResults> : <span></span>
+              }
+
               {!checkCore.pass ? (
                 <div>
                   <br />
-                  <h6 style={{ color: "#94d6ff" }}>Core Modules Yet To Take:</h6>
-                  <Grid container spacing={1}>
+                  <h6 style={{ color: "#94d6ff" }}>
+                    Core Modules Yet To Take:
+                  </h6>
                     {checkCore.mod ? (
-                      checkCore.mod.map((x) => (
-                        <Grid item spacing={3}>
-                          <span style={{fontSize: 15}}>
-                            {x.toUpperCase()}
+                      <Grid container spacing={1}>
+                      {checkCore.mod.map(mod => (
+                        <Grid item xs={3}>
+                          <span style={{ fontSize: 15 }}>
+                            {mod.toUpperCase()}
                           </span>
-                          
-                        </Grid>
-                      ))
-                    ) : (
-                      <span></span>
-                    )}
-                  </Grid>
+                        </Grid>))
+                      }
+                      </Grid> 
+                      ) : (<span></span>)
+                    }
                 </div>
               ) : (
                 <span></span>
-              )}
-              {checkSpecialisation.set1 ? (
+              )
+            }
+              {
+                "focus" in checkSpecialisation ? (
+                  <div>
+                    <br/>
+                    <h6 style={{ color: "#94d6ff" }}>Focus Area Modules Satisfied: </h6>
+                    {
+                      checkSpecialisation.focus.mod.length > 0 ? (
+                        <Grid container spacing={1}>
+                          {checkSpecialisation.focus.mod.map(mod => (
+                            <Grid item xs={3}>
+                              <span style={{ fontSize: 15 }}>{mod.toUpperCase()}</span>
+                            </Grid>
+                          ))}
+                        </Grid> 
+                      ) : (<span>-</span>)
+                    }
+                  </div>
+                ) : (<span></span>)
+              }
+              {"set1" in checkSpecialisation ? (
                 <div>
                   <br />
                   <h6 style={{ color: "#94d6ff" }}>
@@ -568,7 +750,7 @@ function Planner() {
                     <Grid container spacing={1}>
                       {checkSpecialisation.set1.mod.map((x) => (
                         <Grid item xs={3}>
-                          <span style={{fontSize: 15}}>
+                          <span style={{ fontSize: 15 }}>
                             {x.toUpperCase()}
                           </span>
                         </Grid>
@@ -581,7 +763,7 @@ function Planner() {
               ) : (
                 <span></span>
               )}
-              {checkSpecialisation.set2 ? (
+              {"set2" in checkSpecialisation ? (
                 <div>
                   <br />
                   <h6 style={{ color: "#94d6ff" }}>
@@ -591,7 +773,7 @@ function Planner() {
                     <Grid container spacing={1}>
                       {checkSpecialisation.set2.mod.map((x) => (
                         <Grid item xs={3}>
-                          <span style={{fontSize: 15}}>
+                          <span style={{ fontSize: 15 }}>
                             {x.toUpperCase()}
                           </span>
                         </Grid>
@@ -604,6 +786,68 @@ function Planner() {
               ) : (
                 <span></span>
               )}
+              
+              {
+                "elective" in checkElective ? 
+                  <div>
+                    <br/>
+                    <h6 style={{ color: "#94d6ff"}}>
+                      Elective Modules Satisfied:
+                    </h6>
+                    {
+                      major === "business analytics" ? 
+                      <>
+                        <h7><b>List A:</b></h7>
+                        <br/>
+                        {
+                          checkElective.elective.lista.mod.length > 0 ?
+                          <Grid container spacing={1}>
+                          {checkElective.elective.lista.mod.map(mod => (
+                            <Grid item xs={3}>{mod.toUpperCase()}</Grid>
+                          ))}
+                          </Grid> : <span>-</span>
+                        }
+                        <br/><br/>
+                        
+                        <h7><b>List B:</b></h7>
+                        <br/>
+                        {
+                          checkElective.elective.listb.mod.length > 0 ?
+                          <Grid container spacing={1}>
+                          {checkElective.elective.listb.mod.map(mod => (
+                            <Grid item xs={3}>{mod.toUpperCase()}</Grid>
+                          ))}
+                          </Grid> : <span>-</span>
+                        }
+                        <br/><br/>
+
+                        <h7><b>List C:</b></h7>
+                        <br/>
+                        {
+                          checkElective.elective.listc.mod.length > 0 ?
+                          <Grid container spacing={1}>
+                          {checkElective.elective.listc.mod.map(mod => (
+                            <Grid item xs={3}>{mod.toUpperCase()}</Grid>
+                          ))}
+                          </Grid> : <span>-</span>
+                        }
+                      </>
+                      :
+                      <>
+                      {
+                        checkElective.elective.length > 0 ?
+                        <Grid container spacing={1}>
+                          {checkElective.elective.map(mod => (
+                            <Grid item xs={3}>{mod.toUpperCase()}</Grid>
+                          ))}
+                        </Grid> : <span></span>
+                      }
+                      </>
+                    }
+                  </div>
+                : 
+                <span></span>
+              }
             </PrereqContent>
           </Prereq>
         ) : (

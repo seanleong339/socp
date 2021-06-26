@@ -66,8 +66,8 @@ class userController {
         if (req.query.submit) {
             return answer;
         }
-        console.log(answer);
         res.send(answer);
+        console.log(answer)
         return answer;
     }
 

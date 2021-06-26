@@ -26,7 +26,7 @@ class userController {
         
         if (filters.major == 'computer science') {
             answer.focus = counting.elective(req.query.major, crit, plan);
-            answer.pass = answer.elective.pass;
+            answer.pass = answer.focus.pass;
         }
         else {
             answer.elective = counting.elective(req.query.major, crit, plan);
@@ -52,13 +52,12 @@ class userController {
         if (req.query.submit) {
             return answer;
         }
-        console.log(answer);
         res.send(answer);
+        console.log(answer)
         return answer;
     }
 
     static async apiSubmitPlan(req, res) {
-        console.log(req)
         var check = await userController.apiCheckPlan(req, res);
         if (check.pass) {
             let submission = req.query;

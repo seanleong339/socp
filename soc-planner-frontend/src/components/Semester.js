@@ -43,10 +43,13 @@ function Semester(props) {
       if (props.mods.length > 0) { // if plan is in local storage
         for (let i = 0; i < props.mods.length; i++) {
           addModuleFromProps(props.mods[i])
+          
         }
-      }
-      
+        // Promise.all(promiseArr).then(props.func(props.id, modules, credits, true))
+      }      
     }, [])
+
+    
 
     async function addModule(event) {
         event.preventDefault()
@@ -64,15 +67,14 @@ function Semester(props) {
         setCredits(credits + Number(moduleData.data.moduleCredit))
         setInput('')
         setDialogOpen(false)
-        const moduleCodes = modules.map(mod => mod.data.moduleCode) // take only the codes
-        props.func(props.id, [...moduleCodes, moduleData.data.moduleCode], Number(moduleData.data.moduleCredit), true)
+        const moduleCodes = modules.map(mod => mod.data.moduleCode.toLowerCase()) // take only the codes
+        props.func(props.id, [...moduleCodes, moduleData.data.moduleCode.toLowerCase()], Number(moduleData.data.moduleCredit), true)
     }
 
     function deleteModule(moduleCode) {
         var modCredits
         var filteredModules = modules
         
-        console.log('modules:', modules)
         for (let i = 0; i < modules.length; i++) {
             if (moduleCode === modules[i].data.moduleCode) {
                 modCredits = Number(modules[i].data.moduleCredit)
@@ -81,7 +83,7 @@ function Semester(props) {
                 break
             }
         }
-        const filteredModuleCodes = filteredModules.map(mod => mod.data.moduleCode)
+        const filteredModuleCodes = filteredModules.map(mod => mod.data.moduleCode.toLowerCase())
         setModules(filteredModules)
         props.func(props.id, filteredModuleCodes, modCredits, false)
     }
@@ -143,7 +145,7 @@ function Semester(props) {
             {modules.map((module) => (
               <li>
                 <span>
-                  <b>{module.data.title}</b> {module.data.moduleCode}{" "}
+                  <b>{module.data.title}</b> {module.data.moduleCode.toUpperCase()}{" "}
                   {module.data.moduleCredit}MC
                 </span>
                 <DeleteButton

@@ -11,7 +11,7 @@ function least(ele, check, num) {
     let count = 0;
     var result = {"mod": []};
     for (var y = 0; y < check.length; y++) {
-        if (ele.indexOf(check[y].toUpperCase()) > -1) {
+        if (ele.indexOf(check[y]) > -1) {
             result.mod.push(check[y])
             count += 1;
             if (count >= num) {
@@ -28,7 +28,7 @@ function least(ele, check, num) {
 function count(ele, check) {
     let count = 0;
     for (var y = 0; y < check.length; y++) {
-        if (ele.indexOf(check[y].toUpperCase()) > -1) {
+        if (ele.indexOf(check[y]) > -1) {
             count += 1;
         }
     };
@@ -38,7 +38,7 @@ function count(ele, check) {
 function modin(ele, check) {
     let result = { mod: [] };
     for (var y = 0; y < check.length; y++) {
-        if (ele.indexOf(check[y].toUpperCase()) > -1) {
+        if (ele.indexOf(check[y]) > -1) {
             result.mod.push(check[y])
         }
     }
@@ -74,7 +74,6 @@ function elective(major, crit, ele) {
     if (major == "computer science") {
         result = least(ele, crit.elective.primary, 3);
     }
-
     return result;
 }
 

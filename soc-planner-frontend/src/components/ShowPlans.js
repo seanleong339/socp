@@ -72,7 +72,7 @@ function ShowPlans() {
     
     getData()
         
-  }, [buttonState])
+  }, [])
 
   useEffect(() => {
     localStorage.setItem('buttonState', JSON.stringify(buttonState))

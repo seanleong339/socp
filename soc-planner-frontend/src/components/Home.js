@@ -7,7 +7,7 @@ import { Switch, Route } from 'react-router-dom'
 
 function Home() {
   return (
-    <Container>
+    <Container data-testid="home">
       
       <Switch>
         <Route exact path="/">

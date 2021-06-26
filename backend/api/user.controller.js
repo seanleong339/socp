@@ -72,7 +72,7 @@ class userController {
     }
 
     static async apiSubmitPlan(req, res) {
-        if (req.query.submit) {
+        req.query.submit = true;
             var check = await userController.apiCheckPlan(req, res);
             if (check.pass) {
                 let submission = req.query;
@@ -85,13 +85,8 @@ class userController {
             }
             else {
                 console.log("Plan does not pass checks");
-                res.send(false);
+                res.send(check);
             }
-        }
-        else {
-            console.log('no submit query in req');
-            res.send('no submit query in req, was this meant to be submitted?');
-        }
     }
 
     static async apiGetModules(req, res) {

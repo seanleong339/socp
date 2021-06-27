@@ -46,8 +46,12 @@ class userController {
             answer.mc = false;
         }
 
-        if (answer.core.pass && answer.elective.pass && answer.set1.pass && answer.set2.pass && answer.mc) {
-            answer.pass = true;
+        if (answer.core.pass && ( ('elective' in answer && answer.elective.pass) ||  ('focus' in answer && answer.focus.pass) )) {
+            if ('set1' in answer && answer.set1.pass && 'set2' in answer && answer.set2.pass) {
+                answer.pass = true
+            } else {
+                answer.pass = false
+            }
         }
         else {
             answer.pass = false;

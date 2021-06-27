@@ -46,15 +46,21 @@ class userController {
             answer.mc = false;
         }
 
-        if (answer.core.pass && ( ('elective' in answer && answer.elective.pass) ||  ('focus' in answer && answer.focus.pass) )) {
-            if ('set1' in answer && answer.set1.pass && 'set2' in answer && answer.set2.pass) {
-                answer.pass = true
-            } else {
-                answer.pass = false
+        if (filters.major!= 'computer science' && filters.specialisation) {
+            if (answer.core.pass && answer.elective.pass && answer.set1.pass && answer.set2.pass && answer.mc) {
+                answer.pass = true;
+            }
+            else {
+                answer.pass = false;
             }
         }
         else {
-            answer.pass = false;
+            if (answer.core.pass && answer.elective.pass && answer.mc) {
+                answer.pass = true;
+            }
+            else {
+                answer.pass = false;
+            }
         }
 
         if (req.query.submit) {
@@ -66,7 +72,7 @@ class userController {
     }
 
     static async apiSubmitPlan(req, res) {
-        if (req.query.submit) {
+        req.query.submit = true;
             var check = await userController.apiCheckPlan(req, res);
             if (check.pass) {
                 let submission = req.query;
@@ -79,13 +85,8 @@ class userController {
             }
             else {
                 console.log("Plan does not pass checks");
-                res.send(false);
+                res.send(check);
             }
-        }
-        else {
-            console.log('no submit query in req');
-            res.send('no submit query in req, was this meant to be submitted?');
-        }
     }
 
     static async apiGetModules(req, res) {

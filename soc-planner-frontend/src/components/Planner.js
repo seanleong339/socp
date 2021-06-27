@@ -101,7 +101,7 @@ function Planner() {
 
   const [ totalMCs, setTotalMCs] = useState(0)
   const [ submitDialogOpen, setSubmitDialogOpen ] = useState(false)
-  const [ submitStatus, setSubmitStatus ] = useState({}) // whether submitted plan was valid
+  const [ submitStatus, setSubmitStatus ] = useState(false) // whether submitted plan was valid
 
   const [ prereqCheck, setPrereqCheck ] = useState(false)
   const [ prereq, setPrereq ] = useState({})
@@ -116,13 +116,13 @@ function Planner() {
 
   useEffect(() => {     
     localStorage.setItem('studyPlan', JSON.stringify(plan)) // Local storage to store user's study plan
-
   }, [plan])
 
   function passData(semester, mods, mcs, add) {
+    console.log(mods)
+    console.log(mcs)
     const modsToAdd = {}
     modsToAdd[semester] = mods
-    console.log('MODS TO ADD', modsToAdd)
     setPlan((prevState) => {
       let merged = {...prevState, ...modsToAdd}
       return merged
@@ -148,6 +148,8 @@ function Planner() {
 
   function handleMajorChange(event) {
     setPrereqCheck(false)
+    setChecked(false)
+    setCheckElective({})
     setMajor(event.target.value)
     setPlan(plan.major = event.target.value)
     if (event.target.value === "computer science") {
@@ -165,6 +167,7 @@ function Planner() {
 
   function handleSpecialisationChange(event) {
     setPrereqCheck(false)
+    setChecked(false)
     setSpecialisation(event.target.value)
     const updatedPlan = plan
     if (event.target.value !== "") {
@@ -183,16 +186,19 @@ function Planner() {
       res = await axios.post('/', null, { params: {
         ...plan,
         major: major,
-        specialisation: specialisation
+        specialisation: specialisation,
+        totalmc: totalMCs
       }})
+      console.log(res)
     } else {
       res = await axios.post('/', null, { params: {
         ...plan,
-        major: major
+        major: major,
+        totalmc: totalMCs
       }})
     }
 
-    setSubmitStatus(res)
+    setSubmitStatus(res.data)
     return res    
   }
 
@@ -349,38 +355,17 @@ function Planner() {
         open={submitDialogOpen}
         onClose={(e) => setSubmitDialogOpen(false)}
       >
-        {"data" in submitStatus && submitStatus.data.pass ? (
+        {submitStatus ===  true ? (
           <DialogTitle data-testid="planner_submitDialog">Plan was Successfully Submitted!</DialogTitle>
-        ) : "data" in submitStatus && !submitStatus.data.pass ? (
+        ) : (
           <>
             <DialogTitle data-testid="planner_submitDialog">
-              Oops... your plan did not meet certain requirements!
+              Oops... your plan did not meet certain requirements! ☹
             </DialogTitle>
             <DialogContent>
-              {submitStatus.data.core.mod.length > 0 ? (
-                <>
-                  <h5>Core Modules Not Fulfilled: </h5>
-                  <Grid container spacing={1}>
-                    {submitStatus.data.core.mod.map((mod) => (
-                      <Grid item xs={3}>
-                        {mod.toUpperCase()}
-                      </Grid>
-                    ))}
-                  </Grid>
-                </>
-              ) : (
-                <span></span>
-              )}
-              <br />
-              {submitStatus.data.mc === false ? (
-                <h5>Insufficient Modular Credits</h5>
-              ) : (
-                <span></span>
-              )}
+              Check Your Plan To Make Sure All Criteria Are Fulfilled.
             </DialogContent>
           </>
-        ) : (
-          <span></span>
         )}
         <br />
       </Dialog>
@@ -568,7 +553,7 @@ function Planner() {
               {"data" in prereq && "set1" in prereq.data ? (
                 <div>
                   <h6 style={{ color: "#94d6ff" }}>
-                    Set 1 Modules (Select Any 2):
+                    Specialisation Set 1 Modules (Select 2):
                   </h6>
                   <Grid container spacing={1}>
                     {prereq.data.set1.map((coreMod) => (
@@ -587,7 +572,7 @@ function Planner() {
               {"data" in prereq && "set2" in prereq.data ? (
                 <div>
                   <h6 style={{ color: "#94d6ff" }}>
-                    Set 2 Modules (Select Any 3):
+                    Specialisation Set 2 Modules (Select 3):
                   </h6>
                   <Grid container spacing={1}>
                     {prereq.data.set2.map((coreMod) => (
@@ -744,7 +729,7 @@ function Planner() {
                 <div>
                   <br />
                   <h6 style={{ color: "#94d6ff" }}>
-                    Set 1 Modules Satisfied (select any 2):{" "}
+                    Specialisation Set 1 Modules Satisfied (select 2):{" "}
                   </h6>
                   {checkSpecialisation.set1.mod.length > 0 ? (
                     <Grid container spacing={1}>
@@ -767,7 +752,7 @@ function Planner() {
                 <div>
                   <br />
                   <h6 style={{ color: "#94d6ff" }}>
-                    Set 2 Modules Satisfied (select any 3):{" "}
+                    Specialisation Set 2 Modules Satisfied (select 3):{" "}
                   </h6>
                   {checkSpecialisation.set2.mod.length > 0 ? (
                     <Grid container spacing={1}>
@@ -835,9 +820,9 @@ function Planner() {
                       :
                       <>
                       {
-                        checkElective.elective.length > 0 ?
+                        checkElective.elective.hasOwnProperty('mod') && checkElective.elective.mod.length > 0 ?
                         <Grid container spacing={1}>
-                          {checkElective.elective.map(mod => (
+                          {checkElective.elective.mod.map(mod => (
                             <Grid item xs={3}>{mod.toUpperCase()}</Grid>
                           ))}
                         </Grid> : <span></span>

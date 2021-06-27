@@ -13,7 +13,6 @@ function SemesterPlan(props) {
                 const code = moduleCodes[i].toUpperCase()
                 const data = axios.get(`https://api.nusmods.com/v2/2020-2021/modules/${code}.json`).catch(e => code)
                 fillModules.push(data)
-                console.log(fillModules)
             }
             Promise.all(fillModules).then(values => (
               setModules([...modules, ...values])

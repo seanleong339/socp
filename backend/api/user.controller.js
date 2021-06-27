@@ -6,11 +6,11 @@ class userController {
 
     static async apiCheckPlan(req, res) {
         let plan = req.query.y1s1.concat(req.query.y1s2, req.query.y2s1, req.query.y2s2, req.query.y3s1, req.query.y3s2, req.query.y4s1, req.query.y4s2)
+        console.log(plan)
         let filters = { "major": req.query.major };
         if ("specialisation" in req.query) {
             filters.specialisation = req.query.specialisation;
         }
-        console.log(filters)
         let crit = await criteriaDAO.getCriteria(filters);
         if (crit == null) {
             res.send("No criteria found for this major");
@@ -43,6 +43,7 @@ class userController {
             answer.mc = true;
         }
         else {
+            console.log("FAIL", parseInt(req.query.totalmc))
             answer.mc = false;
         }
 
@@ -55,7 +56,7 @@ class userController {
             }
         }
         else {
-            if (answer.core.pass && answer.elective.pass && answer.mc) {
+            if (answer.core.pass && answer.focus.pass && answer.mc) {
                 answer.pass = true;
             }
             else {
@@ -67,7 +68,6 @@ class userController {
             return answer;
         }
         res.send(answer);
-        console.log(answer)
         return answer;
     }
 

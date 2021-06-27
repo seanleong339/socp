@@ -20,6 +20,7 @@ function Semester(props) {
     const [input, setInput] = useState('')
     const [credits, setCredits] = useState(0)
     const [allMods, setAllMods] = useState([])
+    const [modulesAndCredits, setModulesAndCredits] = useState({modules, credits}) // keep track of when modules AND credits change
 
     // Following props are for creating custom module
     const [ customModuleCode, setCustomModuleCode ] = useState("")
@@ -28,34 +29,64 @@ function Semester(props) {
 
     useEffect(() => {
       async function getMods() {
-        let modsData = await axios.get("https://api.nusmods.com/v2/2020-2021/moduleList.json")
+        let modsData = await axios.get("https://api.nusmods.com/v2/2021-2022/moduleList.json")
         setAllMods(modsData.data)
       }
 
-      async function addModuleFromProps(moduleCode) {
-        let moduleData = await axios.get(`https://api.nusmods.com/v2/2020-2021/modules/${moduleCode.toUpperCase()}.json`)
-        setModules(prevState => [...prevState, moduleData])
-        setCredits(prevState => prevState + Number(moduleData.data.moduleCredit))
-      }
-
       getMods()
-
-      if (props.mods.length > 0) { // if plan is in local storage
-        for (let i = 0; i < props.mods.length; i++) {
-          addModuleFromProps(props.mods[i])
-          
-        }
-        // Promise.all(promiseArr).then(props.func(props.id, modules, credits, true))
-      }      
+   
     }, [])
 
+    useEffect(() => {
+      async function addModuleFromProps(moduleCode) {
+        let moduleData = await axios.get(`https://api.nusmods.com/v2/2021-2022/modules/${moduleCode.toUpperCase()}.json`)
+        return moduleData
+      }
+
+      if (props.mods.length > 0) { // if plan is in local storage
+        const promises = []
+        for (let i = 0; i < props.mods.length; i++) {
+          promises.push(addModuleFromProps(props.mods[i]))
+        }
+        Promise.allSettled(promises).then(
+          results => (
+            results.map(result => result.status === "fulfilled" ? result.value : null).filter(x => x !== null)
+          )
+        ).then(
+          results => {
+            setModules([...modules, ...results])
+            let sum = 0
+            results.forEach(x => sum = sum + Number(x.data.moduleCredit))
+            setCredits(credits + sum)         
+          }
+        )
+          
+      }   
+
+    }, [])
+
+    useEffect(() => {
+      setModulesAndCredits(prev => (
+        (modules !== prev.modules && credits !== prev.credits) 
+        ? {modules, credits} 
+        : prev
+    ))
+    }, [modules, credits])
+
+    useEffect(() => {
+      
+      const moduleCodes = modules.map(mod => mod.data.moduleCode.toUpperCase())
+      console.log(moduleCodes)
+      props.func(props.id, moduleCodes, credits, true)
+
+    }, [modulesAndCredits])
     
 
     async function addModule(event) {
         event.preventDefault()
         let moduleData
         if (input) {
-          moduleData = await axios.get(`https://api.nusmods.com/v2/2020-2021/modules/${input.split(" ")[0].toUpperCase()}.json`)
+          moduleData = await axios.get(`https://api.nusmods.com/v2/2021-2022/modules/${input.split(" ")[0].toUpperCase()}.json`)
         } else {
           moduleData = new Object()
           moduleData.data = new Object()
@@ -67,8 +98,6 @@ function Semester(props) {
         setCredits(credits + Number(moduleData.data.moduleCredit))
         setInput('')
         setDialogOpen(false)
-        const moduleCodes = modules.map(mod => mod.data.moduleCode.toLowerCase()) // take only the codes
-        props.func(props.id, [...moduleCodes, moduleData.data.moduleCode.toLowerCase()], Number(moduleData.data.moduleCredit), true)
     }
 
     function deleteModule(moduleCode) {
@@ -83,7 +112,7 @@ function Semester(props) {
                 break
             }
         }
-        const filteredModuleCodes = filteredModules.map(mod => mod.data.moduleCode.toLowerCase())
+        const filteredModuleCodes = filteredModules.map(mod => mod.data.moduleCode.toUpperCase())
         setModules(filteredModules)
         props.func(props.id, filteredModuleCodes, modCredits, false)
     }

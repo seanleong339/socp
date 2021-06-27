@@ -62,11 +62,12 @@ function ShowPlans() {
     const [ specialisation, setSpecialisation ] = useState('')
     const [ studyPlans, setStudyPlans ] = useState([])
   
-    const [ buttonState, setButtonState ] = useState(JSON.parse(localStorage.getItem('buttonState')) || [])
+    const [ buttonState, setButtonState ] = useState(JSON.parse(localStorage.getItem('reactionState')) || {})
   
   useEffect(() => {
     async function getData() {
       const studyPlanData = await axios.get(`/sample`)
+      console.log(studyPlanData)
       setStudyPlans(studyPlanData.data.plans)
     }
     
@@ -75,8 +76,7 @@ function ShowPlans() {
   }, [])
 
   useEffect(() => {
-    localStorage.setItem('buttonState', JSON.stringify(buttonState))
-    console.log(localStorage.getItem('buttonState'))
+    localStorage.setItem('reactionState', JSON.stringify(buttonState))
   }, [buttonState])
 
 
@@ -100,70 +100,85 @@ function ShowPlans() {
     console.log(studyPlans)
   }
 
-  async function reactionClick(id, like, planID) { // id of button, boolean whether like or dislike, id of study plan
-    if (like) {
-      if (buttonState[id] === 1) {
-        const buttonStateClone = [...buttonState]
-        buttonStateClone[id] = 0
-        await axios.post('/sample/voting', {
-          id: planID,
-          value: -1
-        })
-        setButtonState(buttonStateClone)
-      } else if (typeof buttonState[id] === undefined || buttonState[id] === 0) {
-        const buttonStateClone = [...buttonState]
-        buttonStateClone[id] = 1
-        await axios.post('/sample/voting', {
-          id: planID,
-          value: 1
-        })
-        setButtonState(buttonStateClone)
-      } else {
-         const buttonStateClone = [...buttonState]
-         buttonStateClone[id] = 1
-         await axios.post('/sample/voting', {
-          id: planID,
-          value: 1
-         })
-         await axios.post('/sample/voting', {
-           id: planID,
-           value: 1
-         })
-         setButtonState(buttonStateClone)
+  async function reactionClick(like, planID) {
+    console.log(planID, like)
+    if (buttonState.hasOwnProperty(planID)) { 
+      if (buttonState[planID] === 1) { // plan currently liked
+        if (like) {
+          const buttonStateClone = {...buttonState}
+          buttonStateClone[planID] = 0
+          setButtonState(buttonStateClone)
+          await axios.post('/sample/voting', {
+            id: planID,
+            value: -1
+          })
+        } else {
+          const buttonStateClone = {...buttonState}
+          buttonStateClone[planID] = -1
+          setButtonState(buttonStateClone)
+          await axios.post('/sample/voting', {
+            id: planID,
+            value: -1
+          })
+        }
+      } else if (buttonState[planID] === 0) { // plan currently no like/dislike
+        if (like) {
+          const buttonStateClone = {...buttonState}
+          buttonStateClone[planID] = 1
+          setButtonState(buttonStateClone)
+          await axios.post('/sample/voting', {
+            id: planID,
+            value: 1
+          })
+        } else {
+          const buttonStateClone = {...buttonState}
+          buttonStateClone[planID] = -1
+          setButtonState(buttonStateClone)
+          await axios.post('/sample/voting', {
+            id: planID,
+            value: -1
+          })
+        }
+
+      } else { // plan currently disliked
+        if (like) {
+          const buttonStateClone = {...buttonState}
+          buttonStateClone[planID] = 1
+          setButtonState(buttonStateClone)
+          await axios.post('/sample/voting', {
+            id: planID,
+            value: 1
+          })
+        } else {
+          const buttonStateClone = {...buttonState}
+          buttonStateClone[planID] = 0
+          setButtonState(buttonStateClone)
+          await axios.post('/sample/voting', {
+            id: planID,
+            value: 1
+          })
+        }
       }
     } else {
-      if (buttonState[id] === -1) {
-        const buttonStateClone = [...buttonState]
-        buttonStateClone[id] = 0
+      if (like) {
+        const buttonStateClone = {...buttonState}
+        buttonStateClone[planID] = 1
+        setButtonState(buttonStateClone)
         await axios.post('/sample/voting', {
           id: planID,
           value: 1
         })
-        setButtonState(buttonStateClone)
-      } else if (typeof buttonState[id] === undefined || buttonState[id] === 0) {
-        const buttonStateClone = [...buttonState]
-        buttonStateClone[id] = -1
-        await axios.post('/sample/voting', {
-          id: planID,
-          value: -1
-        })
-        setButtonState(buttonStateClone)
-
       } else {
-        const buttonStateClone = [...buttonState]
-        buttonStateClone[id] = -1
-        await axios.post('/sample/voting', {
-          id: planID,
-          value: -1
-        })
-        await axios.post('/sample/voting', {
-          id: planID,
-          value: -1
-        })
+        const buttonStateClone = {...buttonState}
+        buttonStateClone[planID] = -1
         setButtonState(buttonStateClone)
+        await axios.post('/sample/voting', {
+          id: planID,
+          value: -1
+        })
       }
     }
-  } 
+  }
 
     return (
       <Container>
@@ -219,18 +234,18 @@ function ShowPlans() {
             <h2>No Plans Found! 😭</h2>
           </ErrorMsg>
         ) : (
-          studyPlans.map((plan, index) => (
+          studyPlans.map((plan) => (
             <>
               <Description>
                 <h5 style={{color: "#8cecf0"}}>{plan.major.toUpperCase()}</h5>
                 <h7 style={{color: "#8cecf0"}}>{plan.specialisation && plan.specialisation.toUpperCase()}</h7>
                 <ReactionBar>
-                  <ReactionButton onClick={e => reactionClick(index, true, plan._id)} color="primary">
-                    <ThumbUpAltIcon style={{fill: (buttonState[index] === 1) ? "#0288d1" : "white", fontSize: 20}}/>
+                  <ReactionButton onClick={e => reactionClick(true, plan._id)} color="primary">
+                    <ThumbUpAltIcon style={{fill: (buttonState.hasOwnProperty(plan._id) && buttonState[plan._id] === 1) ? "#0288d1" : "white", fontSize: 20}}/>
                   </ReactionButton>
 
-                  <ReactionButton onClick={e => reactionClick(index, false, plan._id)} color="primary">
-                    <ThumbDownAltIcon style={{fill: (buttonState[index] === -1) ? "#0288d1" : "white", fontSize: 20}} />
+                  <ReactionButton onClick={e => reactionClick(false, plan._id)} color="primary">
+                    <ThumbDownAltIcon style={{fill: (buttonState.hasOwnProperty(plan._id) && buttonState[plan._id] === -1) ? "#0288d1" : "white", fontSize: 20}} />
                   </ReactionButton>
                   {plan.votes 
                     ? plan.votes === 1 ?

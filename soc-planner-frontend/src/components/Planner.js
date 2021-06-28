@@ -34,7 +34,7 @@ const specialisations = {
     {name: "Computer Security", value: "computer security"},
     {name: "Database Systems", value: "database systems"},
     {name: "Multimedia Information Retrieval", value: "multimedia information retrieval"},
-    {name: "Networking and Distributed Systems", value: "networking and distrbuted systems"},
+    {name: "Networking and Distributed Systems", value: "networking and distributed systems"},
     {name:  "Parallel Computing", value: "parallel computing"},
     {name: "Programming Languages", value: "programming languages"},
     {name: "Software Engineering", value: "software engineering"},

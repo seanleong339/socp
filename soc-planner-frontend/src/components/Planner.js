@@ -656,7 +656,7 @@ function Planner() {
                     <h6 style={{ color: "#94d6ff" }}>Elective Fulfilled:</h6>
                   </div>
                   <div class="right">
-                    {checkElective.pass ? (
+                    {checkElective.elective.pass ? (
                       <CheckCircleIcon style={{ fill: "green" }} />
                     ) : (
                       <CancelIcon style={{ fill: "#d45550" }} />
@@ -776,49 +776,56 @@ function Planner() {
                 "elective" in checkElective ? 
                   <div>
                     <br/>
-                    <h6 style={{ color: "#94d6ff"}}>
-                      Elective Modules Satisfied:
-                    </h6>
+                    
                     {
                       major === "business analytics" ? 
-                      <>
-                        <h7><b>List A:</b></h7>
-                        <br/>
-                        {
-                          checkElective.elective.lista.mod.length > 0 ?
-                          <Grid container spacing={1}>
-                          {checkElective.elective.lista.mod.map(mod => (
-                            <Grid item xs={3}>{mod.toUpperCase()}</Grid>
-                          ))}
-                          </Grid> : <span>-</span>
-                        }
-                        <br/><br/>
-                        
-                        <h7><b>List B:</b></h7>
-                        <br/>
-                        {
-                          checkElective.elective.listb.mod.length > 0 ?
-                          <Grid container spacing={1}>
-                          {checkElective.elective.listb.mod.map(mod => (
-                            <Grid item xs={3}>{mod.toUpperCase()}</Grid>
-                          ))}
-                          </Grid> : <span>-</span>
-                        }
-                        <br/><br/>
+                        checkElective.elective.pass ?
+                        <span></span> :
+                      
+                        <>
+                          <h6 style={{ color: "#94d6ff"}}>
+                            Elective Modules Satisfied:
+                          </h6>
+                          <h7><b>List A:</b></h7>
+                          <br/>
+                          {
+                            checkElective.elective.lista.mod.length > 0 ?
+                            <Grid container spacing={1}>
+                            {checkElective.elective.lista.mod.map(mod => (
+                              <Grid item xs={3}>{mod.toUpperCase()}</Grid>
+                            ))}
+                            </Grid> : <span>-</span>
+                          }
+                          <br/><br/>
+                          
+                          <h7><b>List B:</b></h7>
+                          <br/>
+                          {
+                            checkElective.elective.listb.mod.length > 0 ?
+                            <Grid container spacing={1}>
+                            {checkElective.elective.listb.mod.map(mod => (
+                              <Grid item xs={3}>{mod.toUpperCase()}</Grid>
+                            ))}
+                            </Grid> : <span>-</span>
+                          }
+                          <br/><br/>
 
-                        <h7><b>List C:</b></h7>
-                        <br/>
-                        {
-                          checkElective.elective.listc.mod.length > 0 ?
-                          <Grid container spacing={1}>
-                          {checkElective.elective.listc.mod.map(mod => (
-                            <Grid item xs={3}>{mod.toUpperCase()}</Grid>
-                          ))}
-                          </Grid> : <span>-</span>
-                        }
-                      </>
+                          <h7><b>List C:</b></h7>
+                          <br/>
+                          {
+                            checkElective.elective.listc.mod.length > 0 ?
+                            <Grid container spacing={1}>
+                            {checkElective.elective.listc.mod.map(mod => (
+                              <Grid item xs={3}>{mod.toUpperCase()}</Grid>
+                            ))}
+                            </Grid> : <span>-</span>
+                          }
+                        </>
                       :
                       <>
+                      <h6 style={{ color: "#94d6ff"}}>
+                        Elective Modules Satisfied:
+                      </h6>
                       {
                         checkElective.elective.hasOwnProperty('mod') && checkElective.elective.mod.length > 0 ?
                         <Grid container spacing={1}>

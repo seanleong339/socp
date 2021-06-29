@@ -42,7 +42,7 @@ class userController {
             answer.mc = true;
         }
         else {
-            console.log("FAIL", parseInt(req.query.totalmc))
+            console.log("mc fail", parseInt(req.query.totalmc))
             answer.mc = false;
         }
 
@@ -54,8 +54,16 @@ class userController {
                 answer.pass = false;
             }
         }
-        else {
+        else if (filters.major == 'computer science') {
             if (answer.core.pass && answer.focus.pass && answer.mc) {
+                answer.pass = true;
+            }
+            else {
+                answer.pass = false;
+            }
+        }
+        else {
+            if (answer.core.pass && answer.elective.pass && answer.mc) {
                 answer.pass = true;
             }
             else {

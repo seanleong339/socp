@@ -1,5 +1,5 @@
 import styled from 'styled-components'
-import React, { useState, useEffect } from 'react'
+import React, { useState, useEffect, useRef } from 'react'
 import IconButton from '@material-ui/core/IconButton'
 import Button from '@material-ui/core/Button'
 import AddCircleIcon from '@material-ui/icons/AddCircle'
@@ -7,20 +7,48 @@ import Dialog from '@material-ui/core/Dialog'
 import DialogActions from '@material-ui/core/DialogActions'
 import DialogContent from '@material-ui/core/DialogContent'
 import DialogTitle from '@material-ui/core/DialogTitle'
-import ClearRoundedIcon from '@material-ui/icons/ClearRounded'
+import ClearSharpIcon from '@material-ui/icons/ClearSharp'
+import ClearAllIcon from '@material-ui/icons/ClearAll'
+import { makeStyles } from '@material-ui/core'
 import axios from '../nusmodsAxios'
 import Autocomplete from '@material-ui/lab/Autocomplete'
 import CircularProgress from '@material-ui/core/CircularProgress'
 import { TextField } from '@material-ui/core'
 
+const useStyles = makeStyles((theme) => ({
+  deleteIcon: {
+    fontSize: 'medium',
+    fill: '#cfcfcf',
+    '&:hover': {
+      fill: 'white'
+    }
+  },
+  addIcon: {
+    fill: '#8cecf0', 
+    fontSize: 25,
+    '&:hover': {
+      fill: '#bff0f2'
+    }
+  }, 
+  deleteAllIcon: {
+    fill: '#74c9cc',
+    '&:hover': {
+      fill: '#bff0f2'
+    }
+  }
+
+}))
+
 function Semester(props) {
+
+    const classes = useStyles()
 
     const [modules, setModules] = useState([])
     const [dialogOpen, setDialogOpen] = useState(false)
     const [input, setInput] = useState('')
     const [credits, setCredits] = useState(0)
     const [allMods, setAllMods] = useState([])
-    const [modulesAndCredits, setModulesAndCredits] = useState({modules, credits}) // keep track of when modules AND credits change
+    const previousValues = useRef({modules, credits})
 
     // Following props are for creating custom module
     const [ customModuleCode, setCustomModuleCode ] = useState("")
@@ -66,20 +94,13 @@ function Semester(props) {
     }, [])
 
     useEffect(() => {
-      setModulesAndCredits(prev => (
-        (modules !== prev.modules && credits !== prev.credits) 
-        ? {modules, credits} 
-        : prev
-    ))
-    }, [modules, credits])
+      if (previousValues.current.modules !== modules && previousValues.current.credits !== credits) {
+        const moduleCodes = modules.map(mod => mod.data.moduleCode.toUpperCase())
+        props.func(props.id, moduleCodes, credits)
+        previousValues.current = { modules, credits }
+      }
+    })
 
-    useEffect(() => {
-      
-      const moduleCodes = modules.map(mod => mod.data.moduleCode.toUpperCase())
-      console.log(moduleCodes)
-      props.func(props.id, moduleCodes, credits, true)
-
-    }, [modulesAndCredits])
     
 
     async function addModule(event) {
@@ -102,19 +123,23 @@ function Semester(props) {
 
     function deleteModule(moduleCode) {
         var modCredits
-        var filteredModules = modules
+        var filteredModules = [...modules]
         
         for (let i = 0; i < modules.length; i++) {
             if (moduleCode === modules[i].data.moduleCode) {
                 modCredits = Number(modules[i].data.moduleCredit)
-                setCredits(credits - modCredits)
+
                 filteredModules.splice(i, 1)
+                setModules(filteredModules)
+                setCredits(credits - modCredits)
                 break
             }
         }
-        const filteredModuleCodes = filteredModules.map(mod => mod.data.moduleCode.toUpperCase())
-        setModules(filteredModules)
-        props.func(props.id, filteredModuleCodes, modCredits, false)
+    }
+
+    function clearSemester() {
+      setModules([])
+      setCredits(0)
     }
 
     return (
@@ -128,7 +153,7 @@ function Semester(props) {
             },
           }}
         >
-          <DialogTitle><h4>Search For NUS Module</h4></DialogTitle>
+          <DialogTitle data-testid="semester_searchDialog"><h4>Search For NUS Module</h4></DialogTitle>
           <DialogContent>
               <Autocomplete
                 style={{width: 495}}
@@ -157,16 +182,27 @@ function Semester(props) {
               </DialogActions>  
         </Dialog>
         <SemInfo>
-          {modules.length}&nbsp;
+          <span data-testid="semester_noMods">{modules.length}</span>&nbsp;
           {modules.length === 1 ? <span>module</span> : <span>modules</span>}{" "}
-          &nbsp;&nbsp;&nbsp; {credits}MCs &nbsp;&nbsp;&nbsp;&nbsp;
-          <IconButton
-            onClick={(e) => setDialogOpen(true)}
-            data-bs-toggle="collapse"
-            size="small"
-          >
-            <AddCircleIcon style={{ fill: "#8cecf0", fontSize: 25 }} />
-          </IconButton>
+          &nbsp;&nbsp;&nbsp; <span data-testid="semester_noMCs">{credits}</span>MCs &nbsp;&nbsp;&nbsp;&nbsp;
+          <Actions>
+            <IconButton
+              style={{marginRight: '13%'}}
+              onClick={(e) => setDialogOpen(true)}
+              data-testid="semester_addButton"
+              data-bs-toggle="collapse"
+              size="small"
+              title="Add a Module"
+            >
+              <AddCircleIcon className={classes.addIcon} />
+            </IconButton>
+            <ClearButton
+              title="Clear Semester"
+              onClick={(e) => clearSemester()}
+            >
+              <ClearAllIcon className={classes.deleteAllIcon} />
+            </ClearButton>
+          </Actions>
         </SemInfo>
 
         <Modules>
@@ -177,11 +213,11 @@ function Semester(props) {
                   <b>{module.data.title}</b> {module.data.moduleCode.toUpperCase()}{" "}
                   {module.data.moduleCredit}MC
                 </span>
-                <DeleteButton
+                <IconButton
                   onClick={(e) => deleteModule(module.data.moduleCode)}
                 >
-                  <ClearRoundedIcon />
-                </DeleteButton>
+                  <ClearSharpIcon className={classes.deleteIcon} />
+                </IconButton>
               </li>
             ))}
           </ul>
@@ -198,9 +234,6 @@ const Container = styled.div `
     margin: 0 1%;
     position: relative;
 `
-const DeleteButton = styled(IconButton) `
-
-`
 
 const Modules = styled.div `
     width: 80%;
@@ -211,6 +244,9 @@ const Modules = styled.div `
 
     li {
         display: flex;
+        align-items:center;
+        justify-content: space-between;
+        width: 80%;
     }
 `
 const SemInfo = styled.span `
@@ -221,6 +257,16 @@ const SemInfo = styled.span `
     font-size: 13px;
     padding-left: 4.3%;
     padding-top: 1%;
+`
+const ClearButton = styled.button  `
+    background: none;
+    border: none;
+    font-size: 13px;
+    letter-spacing: 1px;
+`
+const Actions = styled.div `
+    margin-right: 3%;
+    margin-left: auto;
 `
 
 export default Semester

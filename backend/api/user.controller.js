@@ -5,6 +5,7 @@ const counting = require("./counting")
 class userController {
 
     static async apiCheckPlan(req, res) {
+        console.log(req)
         let plan = req.query.y1s1.concat(req.query.y1s2, req.query.y2s1, req.query.y2s2, req.query.y3s1, req.query.y3s2, req.query.y4s1, req.query.y4s2)
         let filters = { "major": req.query.major };
         if ("specialisation" in req.query) {

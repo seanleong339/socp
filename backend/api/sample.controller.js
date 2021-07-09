@@ -11,7 +11,6 @@ class sampleController {
         if (req.query.specialisation) {
             filters.specialisation = req.query.specialisation;
         }
-        console.log(filters)
 
         const { planList, totalNumPlans } = await sampleDAO.getPlan({
             filters,
@@ -24,6 +23,7 @@ class sampleController {
             filters: filters,
             totalresults: totalNumPlans,
         }
+        console.log(response)
         res.json(response)
     }
 

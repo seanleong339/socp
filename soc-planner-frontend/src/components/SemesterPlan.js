@@ -1,12 +1,15 @@
 import styled from 'styled-components'
 import React, { useState, useEffect } from 'react'
+import { CircularProgress } from '@material-ui/core'
 import axios from '../nusmodsAxios'
 
 function SemesterPlan(props) {
 
     const [modules, setModules] = useState([])
+    const [loading, setLoading] = useState(true)
 
     useEffect(() => {
+
         async function fillData(moduleCodes) {
             var fillModules = []
             for (let i = 0; i < moduleCodes.length; i++) {
@@ -14,9 +17,10 @@ function SemesterPlan(props) {
                 const data = axios.get(`https://api.nusmods.com/v2/2020-2021/modules/${code}.json`).catch(e => code)
                 fillModules.push(data)
             }
-            Promise.all(fillModules).then(values => (
+            Promise.all(fillModules).then(values => {
               setModules([...modules, ...values])
-            ))
+              setLoading(false)
+            })
         }
 
         if (props.modules) {
@@ -29,6 +33,7 @@ function SemesterPlan(props) {
     return (
         <Container>
             <Modules>
+                {loading && <CircularProgress size={25} style={{color: 'white', marginLeft: '5%', marginTop: '5%'}}/>}
                 <ul>
                     {modules.map(module => ( module.data ? 
                         <li>

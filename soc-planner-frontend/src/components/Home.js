@@ -2,6 +2,7 @@ import React from 'react'
 import styled from 'styled-components'
 import ShowPlans from './ShowPlans'
 import Planner from './Planner'
+import Comments from './Comments'
 import { Switch, Route } from 'react-router-dom'
 
 
@@ -15,6 +16,9 @@ function Home() {
         </Route>
         <Route path="/showplans">
           <ShowPlans />
+        </Route>
+        <Route path="/comments">
+          <Comments />
         </Route>
       </Switch>
     </Container>

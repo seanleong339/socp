@@ -48,12 +48,14 @@ function Semester(props) {
     const [input, setInput] = useState('')
     const [credits, setCredits] = useState(0)
     const [allMods, setAllMods] = useState([])
+    const [loading, setLoading] = useState(true)
     const previousValues = useRef({modules, credits})
+
 
     // Following props are for creating custom module
     const [ customModuleCode, setCustomModuleCode ] = useState("")
     const [ customModuleTitle, setCustomModuleTitle] = useState("")
-    const [ customModuleCredits, setCustomModuleCredits ] = useState() 
+    const [ customModuleCredits, setCustomModuleCredits ] = useState(0) 
 
     useEffect(() => {
       async function getMods() {
@@ -73,6 +75,7 @@ function Semester(props) {
 
       if (props.mods.length > 0) { // if plan is in local storage
         const promises = []
+        setLoading(true)
         for (let i = 0; i < props.mods.length; i++) {
           promises.push(addModuleFromProps(props.mods[i]))
         }
@@ -82,6 +85,7 @@ function Semester(props) {
           )
         ).then(
           results => {
+            setLoading(false)
             setModules([...modules, ...results])
             let sum = 0
             results.forEach(x => sum = sum + Number(x.data.moduleCredit))
@@ -206,6 +210,7 @@ function Semester(props) {
         </SemInfo>
 
         <Modules>
+          {loading && <CircularProgress size={25} style={{color: 'white', marginLeft: '5%', marginTop: '8%'}} />}
           <ul>
             {modules.map((module) => (
               <li>

@@ -7,8 +7,8 @@ import { makeStyles } from '@material-ui/core'
 import teal from "@material-ui/core/colors/teal"
 import { Link } from "react-router-dom"
 import axios from '../dbAxios'
-import ThumbUpAltIcon from '@material-ui/icons/ThumbUpAlt'
-import ThumbDownAltIcon from '@material-ui/icons/ThumbDownAlt'
+import ThumbUpIcon from '@material-ui/icons/ThumbUp'
+import MessageIcon from '@material-ui/icons/Message'
 import IconButton from '@material-ui/core/IconButton'
 
 const useStyles = makeStyles((theme) => ({
@@ -103,98 +103,38 @@ function ShowPlans() {
   }
 
   // update votes on the database
-  async function reactionClick(like, planID) { 
+  async function reactionClick(planID) { 
     if (buttonState.hasOwnProperty(planID)) { 
       if (buttonState[planID] === 1) { // plan currently liked
-        if (like) {
-          const buttonStateClone = {...buttonState}
-          buttonStateClone[planID] = 0
-          setButtonState(buttonStateClone)
-          updateVotes(-1, planID)
-          await axios.post('/sample/voting', {
-            id: planID,
-            value: -1
-          })
-        } else {
-          const buttonStateClone = {...buttonState}
-          buttonStateClone[planID] = -1
-          setButtonState(buttonStateClone)
-          updateVotes(-2, planID)
-          await axios.post('/sample/voting', {
-            id: planID,
-            value: -1
-          })
-          await axios.post('/sample/voting', {
-            id: planID,
-            value: -1
-          })
-        }
-      } else if (buttonState[planID] === 0) { // plan currently no like/dislike
-        if (like) {
-          const buttonStateClone = {...buttonState}
-          buttonStateClone[planID] = 1
-          setButtonState(buttonStateClone)
-          updateVotes(1, planID)
-          await axios.post('/sample/voting', {
-            id: planID,
-            value: 1
-          })
-        } else {
-          const buttonStateClone = {...buttonState}
-          buttonStateClone[planID] = -1
-          setButtonState(buttonStateClone)
-          updateVotes(-1, planID)
-          await axios.post('/sample/voting', {
-            id: planID,
-            value: -1
-          })
-        }
-
-      } else { // plan currently disliked
-        if (like) {
-          const buttonStateClone = {...buttonState}
-          buttonStateClone[planID] = 1
-          setButtonState(buttonStateClone)
-          updateVotes(2, planID)
-          await axios.post('/sample/voting', {
-            id: planID,
-            value: 1
-          })
-          await axios.post('/sample/voting', {
-            id: planID,
-            value: 1
-          })
-        } else {
-          const buttonStateClone = {...buttonState}
-          buttonStateClone[planID] = 0
-          setButtonState(buttonStateClone)
-          updateVotes(1, planID)
-          await axios.post('/sample/voting', {
-            id: planID,
-            value: 1
-          })
-        }
-      }
-    } else {
-      if (like) {
         const buttonStateClone = {...buttonState}
-        buttonStateClone[planID] = 1
-        setButtonState(buttonStateClone)
-        updateVotes(1, planID)
-        await axios.post('/sample/voting', {
-          id: planID,
-          value: 1
-        })
-      } else {
-        const buttonStateClone = {...buttonState}
-        buttonStateClone[planID] = -1
+        buttonStateClone[planID] = 0
         setButtonState(buttonStateClone)
         updateVotes(-1, planID)
         await axios.post('/sample/voting', {
           id: planID,
           value: -1
         })
+        } else if (buttonState[planID] === 0) { // plan currently no like/dislike
+          const buttonStateClone = {...buttonState}
+          buttonStateClone[planID] = 1
+          setButtonState(buttonStateClone)
+          updateVotes(1, planID)
+          await axios.post('/sample/voting', {
+            id: planID,
+            value: 1
+          })
+
       }
+    } else {
+      const buttonStateClone = {...buttonState}
+      buttonStateClone[planID] = 1
+      setButtonState(buttonStateClone)
+      updateVotes(1, planID)
+      await axios.post('/sample/voting', {
+        id: planID,
+        value: 1
+      })
+      
     }
   }
 
@@ -270,28 +210,14 @@ function ShowPlans() {
               <Description>
                 <h5 style={{color: "#8cecf0"}}>{plan.major.toUpperCase()}</h5>
                 <h7 style={{color: "#8cecf0"}}>{plan.specialisation && plan.specialisation.toUpperCase()}</h7>
-                <ReactionBar>
-                  <ReactionButton data-testid="showplans_thumbsUpButton" onClick={e => reactionClick(true, plan._id)} color="primary">
-                    <ThumbUpAltIcon data-testid="showplans_thumbsUpIcon" style={{fill: (buttonState.hasOwnProperty(plan._id) && buttonState[plan._id] === 1) ? "#0288d1" : "white", fontSize: 20}}/>
-                  </ReactionButton>
-
-                  <ReactionButton data-testid="showplans_thumbsDownButton" onClick={e => reactionClick(false, plan._id)} color="primary">
-                    <ThumbDownAltIcon data-testid="showplans_thumbsDownIcon" style={{fill: (buttonState.hasOwnProperty(plan._id) && buttonState[plan._id] === -1) ? "#0288d1" : "white", fontSize: 20}} />
-                  </ReactionButton>
-                  {plan.votes 
-                    ? plan.votes === 1 ?
-                      <div style={{marginRight: '5%', whiteSpace: 'nowrap'}}>1 Vote</div> : <div style={{marginRight: '5%', whiteSpace: 'nowrap'}}>{plan.votes} Votes</div>
-                    : <div style={{marginRight: '5%', whiteSpace: 'nowrap'}}>No Votes Yet</div>
-                  }
                   <ImportLink
                   to = {{
                     pathname: '/',
                     state: { plan }
                   }}
                   >
-                    IMPORT PLAN
+                    <b>IMPORT PLAN</b>
                   </ImportLink>
-                </ReactionBar>
               </Description>
 
               <Grid container spacing={3}>
@@ -348,6 +274,29 @@ function ShowPlans() {
                   </PaperStyled>
                 </GridStyled>
               </Grid>
+              <Grid container spacing={3}>
+                <Grid item xs={2}></Grid>
+                <Grid item xs={10}>
+                <ReactionBar>
+                  <ReactionButton data-testid="showplans_thumbsUpButton" onClick={e => reactionClick(plan._id)} color="primary">
+                    <ThumbUpIcon data-testid="showplans_thumbsUpIcon" style={{fill: (buttonState.hasOwnProperty(plan._id) && buttonState[plan._id] === 1) ? "#0288d1" : "white", fontSize: 20}}/>
+                  </ReactionButton>
+                  {plan.votes 
+                    ? plan.votes === 1 ?
+                      <div style={{marginRight: '2%', whiteSpace: 'nowrap'}}>1 Vote</div> : <div style={{marginRight: '2%', whiteSpace: 'nowrap'}}>{plan.votes} Votes</div>
+                    : <div style={{marginRight: '2%', whiteSpace: 'nowrap'}}>No Votes Yet</div>
+                  }
+
+                  <CommentLink to = {{
+                    pathname: '/comments',
+                    state: { plan }
+                  }}>
+                    <MessageIcon style={{fill: 'white', fontSize: 20}} />
+                  </CommentLink>
+                </ReactionBar>
+                </Grid>
+              </Grid>
+              
             </>
           ))
         )}
@@ -466,20 +415,27 @@ const ReactionButton = styled(IconButton) `
     color: 'white';
   }
 `
+const CommentLink = styled(Link) `
+
+`
 const ImportLink = styled(Link) `
-  background: transparent;
-  border: 2px solid #8cecf0;
-  color: #8cecf0;
-  font-size: 13px;
-  letter-spacing: 1px;
-  padding: 4px 12px;
+  background: #388e3c;
+  border: none;
+  color: white;
+  padding: 6px 22px;
   border-radius: 20px;
+  font-size: 13px;
+  font-weight: 200;
+  letter-spacing: 1.5px;
+  margin-left: 15px;
+  margin-right: 45px;
+  margin-bottom: 5px;
   text-decoration: none;
-  white-space: nowrap;
 
   &:hover {
-    color: #c1f3f5;
-    border: 2px solid #c1f3f5;
+    background: #4caf50;
+    color: #e1f5fe;
+    cursor: pointer;
     transition: all 250ms cubic-bezier(0.25, 0.46, 0.45, 0.94) 0s;
   }
 `

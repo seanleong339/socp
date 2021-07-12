@@ -20,6 +20,7 @@ class commentDAO {
 		commentsPerPage = 30
 	} = {})
 	{
+
 		let query = { "plan": { $eq: filters } };
 		let cursor;
 

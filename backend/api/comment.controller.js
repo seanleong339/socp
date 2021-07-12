@@ -5,7 +5,10 @@ class commentController {
     var filters = req.query.planid;
     var page = req.query.page ? parseInt(req.query.page, 10) : 0;
 
-    const commentList = await commentDao.getComment(filters, page);
+    const commentList = await commentDao.getComment({
+      filters,
+      page
+    });
 
     let response = {
       comments: commentList,

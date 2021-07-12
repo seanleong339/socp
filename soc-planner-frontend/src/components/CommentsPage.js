@@ -1,6 +1,7 @@
 import React from 'react'
 import styled from 'styled-components'
 import SemesterPlan from './SemesterPlan'
+import CommentsSection from './CommentsSection'
 import { Grid, makeStyles, Paper } from '@material-ui/core'
 import { teal } from '@material-ui/core/colors'
 import { useLocation } from 'react-router'
@@ -11,10 +12,9 @@ const useStyles = makeStyles((theme) => ({
     }
 }))
 
-function Comments() {
+function CommentsPage() {
     const location = useLocation()
     const plan = location.state.plan
-    console.log(plan)
     const classes = useStyles()
 
     return (
@@ -77,6 +77,12 @@ function Comments() {
                   </PaperStyled>
                 </GridStyled>
               </Grid>
+              <Grid container spacing={3}>
+                  <Grid item xs={2}></Grid>
+                  <Grid item xs={10}>
+                      <CommentsSection planID={plan._id} />
+                  </Grid>
+              </Grid>
             
         </Container>
     )
@@ -117,7 +123,7 @@ const PaperStyled = styled(Paper) `
 `
 
 
-export default Comments
+export default CommentsPage
 
 
 

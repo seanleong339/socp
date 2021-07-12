@@ -12,11 +12,12 @@ class commentController {
       page: page,
       filters: filters,
     };
-
+    console.log('RESPONSE', response)
     res.json(response);
   }
 
   static async apiPostComment(req, res) {
+    console.log("POST")
     const result = commentDao.addComment(req.body);
     res.send(result.acknowledged);
   }

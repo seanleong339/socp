@@ -25,6 +25,8 @@ function SemesterPlan(props) {
 
         if (props.modules) {
           fillData(props.modules).catch(e => console.log(e))
+        } else {
+          setLoading(false)
         }
     }, [])
 

@@ -48,14 +48,14 @@ function Semester(props) {
     const [input, setInput] = useState('')
     const [credits, setCredits] = useState(0)
     const [allMods, setAllMods] = useState([])
-    const [loading, setLoading] = useState(true)
+    const [loading, setLoading] = useState(false)
     const previousValues = useRef({modules, credits})
 
 
     // Following props are for creating custom module
     const [ customModuleCode, setCustomModuleCode ] = useState("")
     const [ customModuleTitle, setCustomModuleTitle] = useState("")
-    const [ customModuleCredits, setCustomModuleCredits ] = useState(0) 
+    const [ customModuleCredits, setCustomModuleCredits ] = useState() 
 
     useEffect(() => {
       async function getMods() {

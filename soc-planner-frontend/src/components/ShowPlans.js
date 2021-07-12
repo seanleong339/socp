@@ -17,29 +17,34 @@ const useStyles = makeStyles((theme) => ({
     },
   }))
 
-const specialisations = {
-  'computer science': [
-    {name: "Artificial Intelligence", value: "ai"},
-    {name: "Algorithms & Theory", value: "theory and algo"},
-    {name: "Computer Graphics and Games", value: "computer graphics"},
-    {name: "Computer Security", value: "computer security"},
-    {name: "Database Systems", value: "database systems"},
-    {name: "Multimedia Information Retrieval", value: "multimedia info"},
-    {name: "Networking and Distributed Systems", value: "networking and distrbuted systems"},
-    {name:  "Parallel Computing", value: "parallel computing"},
-    {name: "Programming Languages", value: "programming languages"},
-    {name: "Software Engineering", value: "software engineering"},
-  ],
-  'business analytics': [
-    {name: "Financial Analytics", value: "financial analytics"},
-    {name: "Marketing Analytics", value: "marketing analytics"}
-  ], 
-  'information systems': [
-    {name: "Digital Innovation", value: "digital innovation"},
-    {name: "Electronic Commerce", value: "electronic commerce"},
-    {name: "Financial Technology", value: "financial technology"}
-  ]
-}
+  const specialisations = {
+    'computer science': [
+      {name: "Artificial Intelligence", value: "artificial intelligence"},
+      {name: "Algorithms and Theory", value: "algorithms and theory"},
+      {name: "Computer Graphics and Games", value: "computer graphics and games"},
+      {name: "Computer Security", value: "computer security"},
+      {name: "Database Systems", value: "database systems"},
+      {name: "Multimedia Information Retrieval", value: "multimedia information retrieval"},
+      {name: "Networking and Distributed Systems", value: "networking and distributed systems"},
+      {name:  "Parallel Computing", value: "parallel computing"},
+      {name: "Programming Languages", value: "programming languages"},
+      {name: "Software Engineering", value: "software engineering"},
+    ],
+    'business analytics': [
+      {name: "General", value: null},
+      {name: "Financial Analytics", value: "financial analytics"},
+      {name: "Marketing Analytics", value: "marketing analytics"}
+    ], 
+    'information systems': [
+      {name: "General", value: null},
+      {name: "Digital Innovation", value: "digital innovation"},
+      {name: "Electronic Commerce", value: "electronic commerce"},
+      {name: "Financial Technology", value: "financial technology"}
+    ], 
+    'information security': [
+      {name: "General", value: null},
+    ]
+  }
 
 function showSpecialisations(major) {
   return (
@@ -67,7 +72,6 @@ function ShowPlans() {
   useEffect(() => {
     async function getData() {
       const studyPlanData = await axios.get(`/sample`)
-      console.log(studyPlanData)
       setStudyPlans(studyPlanData.data.plans)
     }
     
@@ -86,7 +90,7 @@ function ShowPlans() {
 
     let studyPlanData
     if (major !== '') {
-      if (specialisation !== '') {
+      if (specialisation !== null) {
         studyPlanData = await axios.get(`/sample?major=${major}&specialisation=${specialisation}`)
       } else {
         studyPlanData = await axios.get(`/sample?major=${major}`)
@@ -94,20 +98,19 @@ function ShowPlans() {
     } else {
       studyPlanData = await axios.get(`/sample`)
     }
-    setMajor('')
-    setSpecialisation('')
+    console.log(studyPlanData)
     setStudyPlans(studyPlanData.data.plans)
-    console.log(studyPlans)
   }
 
-  async function reactionClick(like, planID) {
-    console.log(planID, like)
+  // update votes on the database
+  async function reactionClick(like, planID) { 
     if (buttonState.hasOwnProperty(planID)) { 
       if (buttonState[planID] === 1) { // plan currently liked
         if (like) {
           const buttonStateClone = {...buttonState}
           buttonStateClone[planID] = 0
           setButtonState(buttonStateClone)
+          updateVotes(-1, planID)
           await axios.post('/sample/voting', {
             id: planID,
             value: -1
@@ -116,6 +119,11 @@ function ShowPlans() {
           const buttonStateClone = {...buttonState}
           buttonStateClone[planID] = -1
           setButtonState(buttonStateClone)
+          updateVotes(-2, planID)
+          await axios.post('/sample/voting', {
+            id: planID,
+            value: -1
+          })
           await axios.post('/sample/voting', {
             id: planID,
             value: -1
@@ -126,6 +134,7 @@ function ShowPlans() {
           const buttonStateClone = {...buttonState}
           buttonStateClone[planID] = 1
           setButtonState(buttonStateClone)
+          updateVotes(1, planID)
           await axios.post('/sample/voting', {
             id: planID,
             value: 1
@@ -134,6 +143,7 @@ function ShowPlans() {
           const buttonStateClone = {...buttonState}
           buttonStateClone[planID] = -1
           setButtonState(buttonStateClone)
+          updateVotes(-1, planID)
           await axios.post('/sample/voting', {
             id: planID,
             value: -1
@@ -145,6 +155,11 @@ function ShowPlans() {
           const buttonStateClone = {...buttonState}
           buttonStateClone[planID] = 1
           setButtonState(buttonStateClone)
+          updateVotes(2, planID)
+          await axios.post('/sample/voting', {
+            id: planID,
+            value: 1
+          })
           await axios.post('/sample/voting', {
             id: planID,
             value: 1
@@ -153,6 +168,7 @@ function ShowPlans() {
           const buttonStateClone = {...buttonState}
           buttonStateClone[planID] = 0
           setButtonState(buttonStateClone)
+          updateVotes(1, planID)
           await axios.post('/sample/voting', {
             id: planID,
             value: 1
@@ -164,6 +180,7 @@ function ShowPlans() {
         const buttonStateClone = {...buttonState}
         buttonStateClone[planID] = 1
         setButtonState(buttonStateClone)
+        updateVotes(1, planID)
         await axios.post('/sample/voting', {
           id: planID,
           value: 1
@@ -172,6 +189,7 @@ function ShowPlans() {
         const buttonStateClone = {...buttonState}
         buttonStateClone[planID] = -1
         setButtonState(buttonStateClone)
+        updateVotes(-1, planID)
         await axios.post('/sample/voting', {
           id: planID,
           value: -1
@@ -180,10 +198,21 @@ function ShowPlans() {
     }
   }
 
+  // update votes locally (to display to viewer)
+  function updateVotes(change, planID) {
+    let plan
+    for (let i = 0; i < studyPlans.length; i++) {
+      if (studyPlans[i]._id === planID) {
+        plan = studyPlans[i]
+        plan.votes = plan.votes + change
+      }
+    }
+  }
+
     return (
       <Container>
         <Heading>
-          <h2 class="header">Study Plans</h2>
+          <h2 class="header" data-testid="showplans_header">Study Plans</h2>
           <form>
             <Major>
               <span>MAJOR: </span>
@@ -191,6 +220,7 @@ function ShowPlans() {
                 className="form-select form-select-sm"
                 name="major"
                 id="major"
+                data-testid="showplans_major"
                 value={major}
                 onChange={(e) => setMajor(e.target.value)}
                 required
@@ -211,6 +241,7 @@ function ShowPlans() {
               className="form-select form-select-sm"
               name="specialisation"
               id="specialisation"
+              data-testid="showplans_specialisation"
               value={specialisation}
               onChange={e => setSpecialisation(e.target.value)}
               disabled={major === "" || major === "information security"}>
@@ -224,7 +255,7 @@ function ShowPlans() {
   
             </Specialisation>
 
-            <FilterButton type="submit" onClick={filter}>
+            <FilterButton data-testid="showplans_filterButton" type="submit" onClick={filter}>
               SHOW PLANS
             </FilterButton>
           </form>
@@ -240,12 +271,12 @@ function ShowPlans() {
                 <h5 style={{color: "#8cecf0"}}>{plan.major.toUpperCase()}</h5>
                 <h7 style={{color: "#8cecf0"}}>{plan.specialisation && plan.specialisation.toUpperCase()}</h7>
                 <ReactionBar>
-                  <ReactionButton onClick={e => reactionClick(true, plan._id)} color="primary">
-                    <ThumbUpAltIcon style={{fill: (buttonState.hasOwnProperty(plan._id) && buttonState[plan._id] === 1) ? "#0288d1" : "white", fontSize: 20}}/>
+                  <ReactionButton data-testid="showplans_thumbsUpButton" onClick={e => reactionClick(true, plan._id)} color="primary">
+                    <ThumbUpAltIcon data-testid="showplans_thumbsUpIcon" style={{fill: (buttonState.hasOwnProperty(plan._id) && buttonState[plan._id] === 1) ? "#0288d1" : "white", fontSize: 20}}/>
                   </ReactionButton>
 
-                  <ReactionButton onClick={e => reactionClick(false, plan._id)} color="primary">
-                    <ThumbDownAltIcon style={{fill: (buttonState.hasOwnProperty(plan._id) && buttonState[plan._id] === -1) ? "#0288d1" : "white", fontSize: 20}} />
+                  <ReactionButton data-testid="showplans_thumbsDownButton" onClick={e => reactionClick(false, plan._id)} color="primary">
+                    <ThumbDownAltIcon data-testid="showplans_thumbsDownIcon" style={{fill: (buttonState.hasOwnProperty(plan._id) && buttonState[plan._id] === -1) ? "#0288d1" : "white", fontSize: 20}} />
                   </ReactionButton>
                   {plan.votes 
                     ? plan.votes === 1 ?

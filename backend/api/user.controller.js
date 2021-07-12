@@ -5,8 +5,8 @@ const counting = require("./counting")
 class userController {
 
     static async apiCheckPlan(req, res) {
+        console.log(req)
         let plan = req.query.y1s1.concat(req.query.y1s2, req.query.y2s1, req.query.y2s2, req.query.y3s1, req.query.y3s2, req.query.y4s1, req.query.y4s2)
-        console.log(plan)
         let filters = { "major": req.query.major };
         if ("specialisation" in req.query) {
             filters.specialisation = req.query.specialisation;
@@ -76,6 +76,7 @@ class userController {
             return answer;
         }
         res.send(answer);
+        console.log(answer)
         return answer;
     }
 

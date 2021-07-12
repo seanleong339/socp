@@ -14,7 +14,12 @@ router.route("/login").post(authCtrl.checkNotAuthenticated, passport.authenticat
 
 router.route("/logout").post(authCtrl.checkAuthenticated, (req, res) => {
 	req.logOut()
-	res.redirect('/login')
+	console.log('logged out')
+	res.redirect('/sample')
 });
+
+router.route("/check").get((req, res) => {
+	res.send(req.isAuthenticated());
+})
 
 module.exports = router;

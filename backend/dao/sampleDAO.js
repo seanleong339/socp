@@ -18,9 +18,10 @@ class sampleDAO {
     static async getPlan({
         filters = null,
         page = 0,
-        plansPerPage = 30
+        plansPerPage = 5 
     } = {})
     {
+        plansPerPage = 5;
         let query
         if (filters) {
             if (filters.major == "computer science") {

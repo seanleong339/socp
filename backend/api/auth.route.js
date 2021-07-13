@@ -23,8 +23,11 @@ router.route("/check").get((req, res) => {
 })
 
 router.route("/user").get(authCtrl.checkAuthenticated, async (req, res) => {
-	console.log(req.user)
-	res.json(req.user);
+	const user = req.user
+	delete user.password
+	delete user._id
+	console.log(user)
+	res.json(user)
 })
 
 module.exports = router;

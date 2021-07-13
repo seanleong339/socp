@@ -22,4 +22,12 @@ router.route("/check").get((req, res) => {
 	res.send(req.isAuthenticated());
 })
 
+router.route("/user").get(authCtrl.checkAuthenticated, async (req, res) => {
+	const user = req.user
+	delete user.password
+	delete user._id
+	console.log(user)
+	res.json(user)
+})
+
 module.exports = router;

@@ -7,6 +7,7 @@ const auth = require("./api/auth.route")
 const session = require("express-session")
 const passport = require("passport")
 const authDAO = require("./dao/authDAO")
+const flash = require('connect-flash')
 
 const app = express();
 
@@ -18,6 +19,7 @@ app.use(session({
     resave: false,
     saveUninitialized: false
 }));
+app.use(flash());
 app.use(passport.initialize());
 app.use(passport.session());
 

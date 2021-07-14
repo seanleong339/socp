@@ -110,7 +110,7 @@ function CommentsSection(props) {
               }
           })
 
-          console.log(res)
+          console.log('COMMENT', res)
           if (res.data.comments) {
             setComments(res.data.comments)
           }
@@ -134,14 +134,16 @@ function CommentsSection(props) {
         var day = dateObj.getDate()
         var month = dateObj.getMonth() + 1
         var year = dateObj.getFullYear()
-        const res = await axios.post('/comment/add', null, { params: {
-            plan: props.planID,
-            text: input,
-            user: 'john',
-            date: day + '/' + month + '/' + year,
-            time: dateObj.toLocaleTimeString()
-        }})
-        console.log(res)
+        var user = await axios.get('/auth/user', {withCredentials: true})
+        // const res = await axios.post('/comment/add', null, { params: {
+        //     plan: props.planID,
+        //     text: input,
+        //     user: user,
+        //     date: day + '/' + month + '/' + year,
+        //     time: dateObj.toLocaleTimeString()
+        // }})
+        // console.log("RES", res)
+        console.log('USER', user)
 
         setInput('')
     }
@@ -195,8 +197,14 @@ function CommentsSection(props) {
                 password: logInPassword
             })
             if (res.data) {
+                console.log(res)
                 setLoggedIn(true)
             }
+            if (res.cookie) {
+                console.log(res.cookie)
+              } else {
+                console.log("RES COOKIE NOT FOUND")
+              }
             handleDialogClose()
         }
 

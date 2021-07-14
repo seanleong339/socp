@@ -12,7 +12,12 @@ const cookieParser = require('cookie-parser')
 
 const app = express();
 
-app.use(cors());
+const corsOption = {
+    origin: ['http://localhost:3000', 'https://socplanner.herokuapp.com/'],
+    credentials: true
+}
+
+app.use(cors(corsOption));
 app.use(express.json());
 app.use(cookieParser())
 app.use(express.urlencoded({extended: false}));

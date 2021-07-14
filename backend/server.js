@@ -8,11 +8,13 @@ const session = require("express-session")
 const passport = require("passport")
 const authDAO = require("./dao/authDAO")
 const flash = require('connect-flash')
+const cookieParser = require('cookie-parser')
 
 const app = express();
 
-app.use(cors());
+app.use(cors({credentials: true}));
 app.use(express.json());
+app.use(cookieParser())
 app.use(express.urlencoded({extended: false}));
 app.use(session({
     secret: "secret",

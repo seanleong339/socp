@@ -53,8 +53,18 @@ class commentDAO {
 		}
 	}
 
-	static async deleteComment(plan, user) {
-		var oid = new ObjectId(plan);
+	static async deleteComment(comment, user) {
+		var oid = new ObjectId(comment);
+		try {
+			const tar = await commentCollection.findOne({ _id: { $eq: oid } });
+			if (tar.username != user) {
+				var result = 'wrong user'
+				return result;
+			}
+		} catch (e) {
+			console.error(`Error in checking user ${e}`);
+			return false;
+		}
 		try {
 			const result = await commentCollection.deleteOne({
 				_id: { $eq: oid },

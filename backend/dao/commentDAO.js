@@ -53,11 +53,14 @@ class commentDAO {
 		}
 	}
 
-	static async removeComment(info) {
-		var oid = new ObjectId(info);
+	static async deleteComment(plan, user) {
+		var oid = new ObjectId(plan);
 		try {
-			await commentCollection.deleteOne({ _id: oid });
-			return true;
+			const result = await commentCollection.deleteOne({
+				_id: { $eq: oid },
+				user: { $eq: user }
+			});
+			return result;
 		} catch (e) {
 			console.error(`Error deleting comment ${e}`);
 			return false;

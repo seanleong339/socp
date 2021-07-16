@@ -26,6 +26,9 @@ class commentController {
   }
 
   static async apiRemoveComment(req, res) {
+    const user = req.user;
+    const result = commentDao.deleteComment(req.body.id, user.username);
+    res.send(result);
   }
 }
 

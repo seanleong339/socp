@@ -10,6 +10,6 @@ router.route('/add').post(authCtrl.checkAuthenticated, commentCtrl.apiPostCommen
 
 //router.route('/change').post();
 
-//router.route('/delete').post();
+router.route('/delete').post(authCtrl.checkAuthenticated, commentCtrl.apiRemoveComment);
 
 module.exports = router;

@@ -34,4 +34,6 @@ router.route("/changename").post(authCtrl.checkAuthenticated, authCtrl.changeUse
 
 router.route("/changepassword").post(authCtrl.checkAuthenticated, authCtrl.changePassword)
 
+router.route("getname").post(authCtrl.getName)
+
 module.exports = router;

@@ -25,7 +25,8 @@ class commentDAO {
 		let cursor;
 
 		try {
-			cursor = await commentCollection.find(query).sort({ date: -1 });
+			var projection = { plan: 1, text: 1, email: 1, date: 1 };
+			cursor = await commentCollection.find(query).project(projection).sort({ date: -1 });
 		} catch (e) {
 			console.error(`Unable to issue find command ${e}`);
 		}
@@ -57,7 +58,7 @@ class commentDAO {
 		var oid = new ObjectId(comment);
 		try {
 			const tar = await commentCollection.findOne({ _id: { $eq: oid } });
-			if (tar.username != user) {
+			if (tar.email != user) {
 				var result = 'wrong user'
 				return result;
 			}
@@ -68,7 +69,7 @@ class commentDAO {
 		try {
 			const result = await commentCollection.deleteOne({
 				_id: { $eq: oid },
-				user: { $eq: user }
+				email: { $eq: user }
 			});
 			return result;
 		} catch (e) {

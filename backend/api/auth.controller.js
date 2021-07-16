@@ -8,13 +8,19 @@ class authCtrl {
 		user.username = req.body.username;
 		user.email = req.body.email;
 		user.password = hashedpw;
-		if (authDAO.addUser(user)) {
-			console.log('success adding user');
-			res.send(true);
-			return;
+		if (await authDAO.findUserbyEmail(user.email) == null) {
+			if (authDAO.addUser(user)) {
+				console.log('success adding user');
+				res.send(true);
+				return;
+			}
+			console.log('cannot add user');
+			res.send(false);
 		}
-		console.log('cannot add user');
-		res.send(false);
+		else {
+			console.log('email already in use')
+			res.send('email already in use');
+		}
 	}
 
 	static checkAuthenticated(req, res, next) {
@@ -32,6 +38,34 @@ class authCtrl {
 			res.redirect('/')
 		}
 		return next();
+	}
+
+	static async changeUsername(req, res) {
+		const info = {};
+		info.user = req.user.email;
+		info.name = true;
+		info.change = req.body.change;
+		const result = await authDAO.changeUserinfo(info);
+		res.send(result.result.ok == 1)
+	}
+
+	static async changePassword(req, res) {
+		const info = {};
+		info.password = true;
+		info.user = req.user.email;
+		info.change = req.body.change;
+		info.oldpassword = req.body.password;
+		console.log(info)
+		const result = await authDAO.changeUserinfo(info);
+		if (result == true) {
+			res.send({pass: true});
+		}
+		else {
+			res.send({
+				pass: false,
+				error: result
+			});
+		}
 	}
 }
 

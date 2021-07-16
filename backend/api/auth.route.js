@@ -30,4 +30,8 @@ router.route("/user").get(authCtrl.checkAuthenticated, async (req, res) => {
 	res.json(user)
 })
 
+router.route("/changename").post(authCtrl.checkAuthenticated, authCtrl.changeUsername)
+
+router.route("/changepassword").post(authCtrl.checkAuthenticated, authCtrl.changePassword)
+
 module.exports = router;

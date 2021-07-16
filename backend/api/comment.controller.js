@@ -22,12 +22,12 @@ class commentController {
   static async apiPostComment(req, res) {
     console.log("POST")
     const result = commentDao.addComment(req.body);
-    res.send(result.acknowledged);
+    res.send(await result);
   }
 
   static async apiRemoveComment(req, res) {
     const user = req.user;
-    const result = commentDao.deleteComment(req.body.id, user.username);
+    const result = commentDao.deleteComment(req.body.id, user.email);
     res.send(result);
   }
 }

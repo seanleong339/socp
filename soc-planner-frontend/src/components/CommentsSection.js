@@ -6,6 +6,8 @@ import { Dialog, DialogTitle, DialogContent, DialogContentText, makeStyles, Text
 import SendIcon from '@material-ui/icons/Send'
 import axios from '../dbAxios'
 import { validateEmail } from './utils/utils'
+import { useSelector, useDispatch } from 'react-redux'
+import { setLogin, selectLogin } from '../features/login/loginSlice'
 
 const useStyles = makeStyles((theme) => ({
     creamPaper: {
@@ -76,13 +78,16 @@ const useStyles = makeStyles((theme) => ({
 
 function CommentsSection(props) {
     const classes = useStyles()
+    const dispatch = useDispatch()
+
+    axios.defaults.withCredentials = true
 
     const [ input, setInput ] = useState('')
-    const [ loggedIn, setLoggedIn ] = useState(false)
     const [ comments, setComments ] = useState([])
     const [ logInOpen, setLogInOpen ] = useState(false)
     const [ signUpOpen, setSignUpOpen ] = useState(false)
-    
+
+    const [ commentPosted, setCommentPosted] = useState(false) // render useEffect when comment posted
     // sign up fields
     const [ signUpEmail, setSignUpEmail ] = useState('')
     const [ signUpUsername, setSignUpUsername ] = useState('')
@@ -109,19 +114,18 @@ function CommentsSection(props) {
                   planid: props.planID
               }
           })
-
-          console.log('COMMENT', res)
           if (res.data.comments) {
             setComments(res.data.comments)
           }
       } 
       getComments()
-    }, [])
+      setCommentPosted(false)
+    }, [commentPosted])
 
     useEffect(() => {
         async function checkLoggedIn() {
           const res = await axios.get('/auth/check')
-          setLoggedIn(res.data)
+          dispatch(setLogin(res.data))
         }
         checkLoggedIn()
         
@@ -131,21 +135,20 @@ function CommentsSection(props) {
         event.preventDefault()
 
         var dateObj = new Date()
-        var day = dateObj.getDate()
-        var month = dateObj.getMonth() + 1
-        var year = dateObj.getFullYear()
+        // var day = dateObj.getDate()
+        // var month = dateObj.getMonth() + 1
+        // var year = dateObj.getFullYear()
         var user = await axios.get('/auth/user', {withCredentials: true})
-        // const res = await axios.post('/comment/add', null, { params: {
-        //     plan: props.planID,
-        //     text: input,
-        //     user: user,
-        //     date: day + '/' + month + '/' + year,
-        //     time: dateObj.toLocaleTimeString()
-        // }})
-        // console.log("RES", res)
-        console.log('USER', user)
+        const res = await axios.post('/comment/add', {
+            plan: props.planID,
+            text: input,
+            user: user.data.username,
+            date: dateObj
+        }, {withCredentials: true})
+
 
         setInput('')
+        setCommentPosted(true)
     }
 
     async function register(event) {
@@ -198,7 +201,7 @@ function CommentsSection(props) {
             })
             if (res.data) {
                 console.log(res)
-                setLoggedIn(true)
+                dispatch(setLogin(true))
             }
             if (res.cookie) {
                 console.log(res.cookie)
@@ -237,7 +240,7 @@ function CommentsSection(props) {
                             <>
                             { 
                                 comments.map(comment => (
-                                <Comment username={comment.username} comment={comment.comment} />
+                                <Comment username={comment.user} comment={comment.text} date={comment.date} />
                                 ))
                             }
                             </> 
@@ -249,7 +252,7 @@ function CommentsSection(props) {
                 
                     
                     {
-                        loggedIn ? 
+                        useSelector(selectLogin) ? 
                         <CommentForm> 
                             <TextField size="small" placeholder="Type a comment..." variant="outlined" className={classes.formInput} InputProps={{ className: classes.textInput}} value={input} onChange={e => setInput(e.target.value)} /> 
                             <IconButton title="Send Comment" type="submit" onClick={postComment} >

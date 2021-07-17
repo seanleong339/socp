@@ -1,10 +1,13 @@
 import React from 'react'
 import styled from 'styled-components'
 import { Link } from 'react-router-dom'
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { makeStyles, Button, Dialog, DialogTitle, DialogContent, DialogContentText, TextField } from '@material-ui/core'
 import axios from '../dbAxios'
 import { validateEmail } from './utils/utils'
+import { useDispatch, useSelector } from 'react-redux'
+import { setLogin, selectLogin } from '../features/login/loginSlice'
+
 
 const useStyles = makeStyles((theme) => ({
   signUpButton: {
@@ -31,9 +34,15 @@ const useStyles = makeStyles((theme) => ({
 function Header() {
 
   const classes = useStyles()
+  const dispatch = useDispatch()
+
+  axios.defaults.withCredentials = true
+
 
   const [ signUpOpen, setSignUpOpen ] = useState(false)
   const [ logInOpen, setLogInOpen ] = useState(false)
+
+  const [ username, setUsername ] = useState('')
 
   // sign up fields
   const [ signUpEmail, setSignUpEmail ] = useState('')
@@ -52,6 +61,23 @@ function Header() {
 
   const [logInEmailError, setLogInEmailError ] = useState(false)
   const [logInPasswordError, setLogInPasswordError ] = useState(false)
+
+  useEffect(() => {
+    async function setLoginStatus() {
+      const res = await axios.get('/auth/check', {withCredentials: true})
+      dispatch(setLogin(res.data))
+    }
+    
+    setLoginStatus()
+  }, [])
+
+  useEffect(() => {
+    async function setUser() {
+      const res = await axios.get('/auth/user')
+      setUsername(res.data.username)
+    }
+    setUser()
+  }, [useSelector(selectLogin)])
 
   async function register(event) {
     event.preventDefault()
@@ -100,15 +126,22 @@ function Header() {
         const res = await axios.post('/auth/login', {
             email: logInEmail,
             password: logInPassword
-        })
+        }, {withCredentials: true})
         if (res.data) {
-            console.log(res)
-            // setLoggedIn(true)
+            dispatch(setLogin(true))
         }
         
         handleDialogClose()
     }
 
+  }
+
+  async function logOut(event) {
+    event.preventDefault()
+
+    const res = axios.post('/auth/logout', {withCredentials: true})
+    dispatch(setLogin(false))
+    console.log(res)
   }
 
   function handleDialogClose() {
@@ -136,16 +169,8 @@ function Header() {
             <h3 style={{fontWeight: 600}}>PLANNER</h3>
           </Logo>
         </Link>
-        
-        <Navlinks>
-            <StyledLink to="/">PLANNER</StyledLink>
-            <StyledLink to="/showplans">SHOW PLANS</StyledLink>
-            <Button variant="contained" style={{marginRight: '2%'}} onClick={e => setSignUpOpen(true)} className={classes.signUpButton}>Sign Up</Button>
-            <Button variant="outlined" onClick={e => setLogInOpen(true)} className={classes.logInButton}>Log In</Button>
-        </Navlinks>
-      </Navbar>
 
-      <Dialog open={logInOpen} onClose={e => handleDialogClose()} >
+        <Dialog open={logInOpen} onClose={e => handleDialogClose()} >
                 <DialogTitle><b>Log In</b></DialogTitle>
                 <DialogContent>
                   <form>
@@ -180,7 +205,34 @@ function Header() {
                     </>
                 }
                 
-              </Dialog>
+          </Dialog>
+        
+        <Navlinks>
+          <NavButtons>
+            <StyledLink to="/">PLANNER</StyledLink>
+            <StyledLink to="/showplans">SHOW PLANS</StyledLink>
+          </NavButtons>
+            
+          <AccountButtons>
+            {
+              useSelector(selectLogin) ? 
+              <>
+                <span style={{fontSize: '18px', fontWeight: '100'}}>Hello, @{username}</span>
+                <Button variant="contained" onClick={e => logOut(e)} className={classes.logInButton}>Log Out</Button>
+              </>
+              :
+              <>
+                <Button variant="contained" style={{marginRight: '2%'}} onClick={e => setSignUpOpen(true)} className={classes.signUpButton}>Sign Up</Button>
+                <Button variant="outlined" onClick={e => setLogInOpen(true)} className={classes.logInButton}>Log In</Button>
+              </>
+            }
+            
+          </AccountButtons>
+            
+        </Navlinks>
+      </Navbar>
+
+      
    
       
     </Container>
@@ -202,7 +254,6 @@ const Container = styled.div `
 
 `
 
-
 const Logo = styled.div `
   letter-spacing: 2px;
   width: 210px;
@@ -220,19 +271,33 @@ const Navlinks = styled.div `
   height: 100%;
   margin-right: 0;
   margin-left: auto;
-  width: 40%;
+  width: 55%;
   display: flex;
   align-items: center;
-
+  justify-content: space-evenly;
+`
+const AccountButtons = styled.div  `
+  display: flex;
+  align-items: center;
+  justify-content: space-evenly;
+  height: 100%;
+  width: 35%;
+`
+const NavButtons = styled.div `
+  width: 50%;
+  display: flex;
+  justify-content: space-evenly;
 `
 const StyledLink = styled(Link) `
-  margin-right: 10%;
+  margin-right: 5%;
   text-decoration: none;
   letter-spacing: 1.5px;
   color: #BEBEBE;
   padding: 15px 20px;
   white-space: nowrap;
   border-bottom: 3px solid transparent;
+  font-size: 17px;
+  font-weight: 400;
 
   :hover {
     color: white;
@@ -241,7 +306,7 @@ const StyledLink = styled(Link) `
   }
 `
 const Navbar = styled.div  `
-  width: 70%;
+  width: 90%;
   margin: 0 auto;
   height: 70px;
   display: flex;

@@ -3,13 +3,15 @@ import styled from 'styled-components'
 import SemesterPlan from './SemesterPlan'
 import Grid from '@material-ui/core/Grid'
 import Paper from '@material-ui/core/Paper'
-import { makeStyles } from '@material-ui/core'
+import { makeStyles, Popper, Fade, ClickAwayListener } from '@material-ui/core'
 import teal from "@material-ui/core/colors/teal"
 import { Link } from "react-router-dom"
 import axios from '../dbAxios'
 import ThumbUpIcon from '@material-ui/icons/ThumbUp'
 import MessageIcon from '@material-ui/icons/Message'
 import IconButton from '@material-ui/core/IconButton'
+import { useSelector } from 'react-redux'
+import { selectLogin } from '../features/login/loginSlice'
 
 const useStyles = makeStyles((theme) => ({
     tealPaper: {
@@ -59,6 +61,7 @@ function showSpecialisations(major) {
 }
 
 
+
 function ShowPlans() {
 
     const classes = useStyles()
@@ -66,13 +69,33 @@ function ShowPlans() {
     const [ major, setMajor ] = useState('')
     const [ specialisation, setSpecialisation ] = useState('')
     const [ studyPlans, setStudyPlans ] = useState([])
+    const [ numComments, setNumComments ] = useState([])
   
     const [ buttonState, setButtonState ] = useState(JSON.parse(localStorage.getItem('reactionState')) || {})
+
+    const [ anchorEl, setAnchorEl ] = useState(null)
+    const open = Boolean(anchorEl)
+    const id = open ? "transitions-popover" : undefined
+
+    const loggedIn = useSelector(selectLogin)
   
   useEffect(() => {
     async function getData() {
       const studyPlanData = await axios.get(`/sample`)
+      console.log(studyPlanData)
       setStudyPlans(studyPlanData.data.plans)
+      let updatedNumComments = []
+      studyPlanData.data.plans.map(plan => {
+        console.log(plan._id)
+        updatedNumComments.push(axios.get('/comment', {
+          params: {
+            planid: plan._id
+          }
+        }))
+      })
+      Promise.all(updatedNumComments).then(values => (
+        values.map(comment => comment.data.comments.length)
+      )).then(values => setNumComments(values))
     }
     
     getData()
@@ -149,6 +172,10 @@ function ShowPlans() {
     }
   }
 
+  function handlePopperClick(event) {
+    setAnchorEl(anchorEl ? null : event.currentTarget)
+  }
+
     return (
       <Container>
         <Heading>
@@ -205,7 +232,7 @@ function ShowPlans() {
             <h2>No Plans Found! 😭</h2>
           </ErrorMsg>
         ) : (
-          studyPlans.map((plan) => (
+          studyPlans.map((plan, index) => (
             <>
               <Description>
                 <h5 style={{color: "#8cecf0"}}>{plan.major.toUpperCase()}</h5>
@@ -278,9 +305,45 @@ function ShowPlans() {
                 <Grid item xs={2}></Grid>
                 <Grid item xs={10}>
                 <ReactionBar>
-                  <ReactionButton data-testid="showplans_thumbsUpButton" onClick={e => reactionClick(plan._id)} color="primary">
-                    <ThumbUpIcon data-testid="showplans_thumbsUpIcon" style={{fill: (buttonState.hasOwnProperty(plan._id) && buttonState[plan._id] === 1) ? "#0288d1" : "white", fontSize: 20}}/>
-                  </ReactionButton>
+                  
+                  
+                  {
+                    loggedIn ?
+                    <ReactionButton data-testid="showplans_thumbsUpButton" onClick={e => reactionClick(plan._id)} color="primary">
+                      <ThumbUpIcon data-testid="showplans_thumbsUpIcon" style={{fill: (buttonState.hasOwnProperty(plan._id) && buttonState[plan._id] === 1) ? "#0288d1" : "white", fontSize: 20}}/>
+                    </ReactionButton>
+                    :
+                    <ReactionButton 
+                      type="button" 
+                      aria-describedby={id} 
+                      onClick={handlePopperClick}>
+                      <ThumbUpIcon data-testid="showplans_thumbsUpIcon" style={{fill: "white", fontSize: 20}}/>
+                    </ReactionButton>
+                  }
+
+                  <Popper
+                    id={id}
+                    open={open}
+                    anchorEl={anchorEl}
+                    placement={'bottom-start'}
+                    transition
+                  >
+                    {({ TransitionProps }) => (
+                      <ClickAwayListener onClickAway={() => setAnchorEl(null)}>
+                        <Fade {...TransitionProps} timeout={350}>
+                          <Paper elevation={2}>
+                            <PopperText>
+                              <div style={{fontWeight: 700, marginBottom: '5px'}}>Like a plan?</div>
+                              <div>Log in or sign up for an account to vote.</div>
+                            </PopperText>
+                          </Paper>
+                          
+                        </Fade>
+                      </ClickAwayListener>
+                    )}
+                  </Popper>
+                    
+
                   {plan.votes 
                     ? plan.votes === 1 ?
                       <div style={{marginRight: '2%', whiteSpace: 'nowrap'}}>1 Vote</div> : <div style={{marginRight: '2%', whiteSpace: 'nowrap'}}>{plan.votes} Votes</div>
@@ -290,9 +353,12 @@ function ShowPlans() {
                   <CommentLink to = {{
                     pathname: '/comments',
                     state: { plan }
-                  }}>
+                  }} style={{marginRight: '1%'}}>
                     <MessageIcon style={{fill: 'white', fontSize: 20}} />
                   </CommentLink>
+                  <div>
+                    {numComments[index]} {numComments[index] === 1 ? "comment" : "comments"}
+                  </div>
                 </ReactionBar>
                 </Grid>
               </Grid>
@@ -313,6 +379,9 @@ const PaperStyled = styled(Paper) `
   min-height: 150px;
   min-width: 200px;
   height: 100%;
+`
+const PopperText = styled.div `
+  padding: 17px 17px;
 `
 const Description = styled.div`
   display: flex;

@@ -3,7 +3,7 @@ import styled from 'styled-components'
 import Semester from './Semester'
 import Grid from '@material-ui/core/Grid'
 import Paper from '@material-ui/core/Paper'
-import { makeStyles, IconButton, Button } from '@material-ui/core'
+import { makeStyles, IconButton, Button, Popper, Fade, ClickAwayListener } from '@material-ui/core'
 import CheckCircleIcon from '@material-ui/icons/CheckCircle'
 import ImageIcon from '@material-ui/icons/Image'
 import CancelIcon from '@material-ui/icons/Cancel'
@@ -16,6 +16,8 @@ import { useLocation } from 'react-router-dom'
 import useDeepCompareEffect from 'use-deep-compare-effect'
 import { planIsEmpty } from './utils/utils'
 import domtoimage from 'dom-to-image'
+import { useSelector } from 'react-redux'
+import { selectLogin } from '../features/login/loginSlice'
 
 const useStyles = makeStyles((theme) => ({
   tealPaper: {
@@ -43,6 +45,9 @@ const useStyles = makeStyles((theme) => ({
       backgroundColor: '#002b36',
       border: '1px solid #8cecf0'
     }
+  },
+  typography: {
+    padding: theme.spacing(2)
   }
 }))
 
@@ -103,6 +108,11 @@ function Planner() {
   const [ major, setMajor ] = useState("computer science")
 
   const [ specialisation, setSpecialisation ] = useState("artificial intelligence")
+
+  const [ anchorEl, setAnchorEl ] = useState(null)
+
+  const open = Boolean(anchorEl)
+  const id = open ? 'transitions-popover' : undefined
 
   const [ plan, setPlan ] = useState(
     (location.state && location.state.plan) ||
@@ -188,6 +198,7 @@ function Planner() {
     setTotalModules(sum)
   }, [modules])
 
+
   function passData(semester, mods, mcs) {
     setPlan((prevState) => {
       let updated = {...prevState}
@@ -240,6 +251,10 @@ function Planner() {
     setPlan(updatedPlan)
   }
 
+  function handlePopperClick(event) {
+    setAnchorEl(anchorEl ? null : event.currentTarget)
+  }
+
   function saveScreenshot() {
     var planner = document.getElementById('capture')
     domtoimage.toPng(planner).then(dataUrl => {
@@ -252,6 +267,7 @@ function Planner() {
 
   async function submitForm(event) {
     event.preventDefault()
+
     setSubmitDialogOpen(true)
     let res
     if (specialisation !== "") {
@@ -272,7 +288,6 @@ function Planner() {
     }
 
     setSubmitStatus(res.data)
-    return res    
   }
 
   async function checkForm(event) {
@@ -413,13 +428,53 @@ function Planner() {
             </select>
           </Specialisation>
 
-          <SubmitButton
-            data-testid="planner_submitButton"
-            type="submit"
-            onClick={submitForm}
-          >
-            SUBMIT
-          </SubmitButton>
+          {
+            useSelector(selectLogin) ?
+            <SubmitButton
+              data-testid="planner_submitButton"
+              type="submit"
+              onClick={submitForm}
+            >
+              SUBMIT
+            </SubmitButton>
+            :
+            <SubmitButton
+              type="button"
+              aria-describedby={id} 
+              onClick={handlePopperClick}
+              >
+              SUBMIT
+            </SubmitButton>
+          }
+          
+          
+            <Popper
+              id={id}
+              open={open}
+              anchorEl={anchorEl}
+              placement={'bottom-start'}
+              transition
+            >
+              {({ TransitionProps }) => (
+                <ClickAwayListener onClickAway={() => setAnchorEl(null)}>
+                  <Fade {...TransitionProps} timeout={350}>
+                    <Paper elevation={2}>
+                      <PopperText>
+                        <div style={{fontWeight: 700, marginBottom: '5px'}}>Want to submit a study plan?</div>
+                        <div>Log in or sign up for an account.</div>
+                      </PopperText>
+                    </Paper>
+                    
+                  </Fade>
+                </ClickAwayListener>
+              )}
+            </Popper>
+          
+          
+
+          
+
+
           <CheckButton
             type="submit"
             data-testid="planner_checkButton"
@@ -1014,6 +1069,9 @@ const GridInfo = styled(Grid) `
   justify-content: space-between;
   align-items: center;
 `
+const PopperText = styled.div `
+  padding: 17px 17px;
+`
 const PlanInfo = styled.div `
   margin-bottom: 0.5%;
 `
@@ -1082,9 +1140,9 @@ const Specialisation = styled.div `
   }
 `
 const SubmitButton = styled.button `
-  background: #0288d1;
-  border: none;
+  background-color: #0288d1;
   color: white;
+  border: none;
   padding: 6px 22px;
   border-radius: 20px;
   font-size: 13px;
@@ -1099,10 +1157,6 @@ const SubmitButton = styled.button `
     transition: all 250ms cubic-bezier(0.25, 0.46, 0.45, 0.94) 0s;
   }
 
-  :disabled {
-    opacity: 50%;
-    pointer-events: none;
-  }
 
 `
 const PrereqButton = styled.button `

@@ -69,7 +69,7 @@ class authCtrl {
 	}
 
 	static async getName(req, res) {
-		const result = authDAO.findUserbyEmail(req.body.email);
+		const result = await authDAO.findUserbyEmail(req.body.email);
 		res.send(result.username);
 	}
 }

@@ -15,7 +15,6 @@ class commentController {
       page: page,
       filters: filters,
     };
-    console.log('RESPONSE', response)
     res.json(response);
   }
 

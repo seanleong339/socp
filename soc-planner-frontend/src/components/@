@@ -59,7 +59,6 @@ function Header() {
   const [ updateUsername, setUpdateUsername ] = useState(username) 
   const [ password, setPassword ] = useState('')
   const [ updatePassword, setUpdatePassword ] = useState('')
-  const [ updatePasswordError, setUpdatePasswordError ] = useState(false)
 
   const [ anchorEl, setAnchorEl ] = useState(null)
 
@@ -168,27 +167,6 @@ function Header() {
     console.log(res)
   }
 
-  async function changeUsername(event) {
-    const res = await axios.post("/auth/changename", {
-      change: updateUsername 
-    }, { withCredentials: true })
-    setChangeUsernameOpen(false)
-  }
-
-  async function changePassword(event) {
-    event.preventDefault()
-    const res = await axios.post("/auth/changepassword", {
-      password: password,
-      change: updatePassword
-    })
-    if (res.data.pass) {
-      setChangePasswordOpen(false)
-    } else {
-      setUpdatePasswordError(true)
-    }
-      
-  }
-
   function handleDialogClose() {
     setSignUpOpen(false)
     setLogInOpen(false)
@@ -204,14 +182,6 @@ function Header() {
     setLogInEmailError(false)
     setSignUpSuccess(false)
   }
-
-  function handleUpdatePasswordClose(event) {
-    setChangePasswordOpen(false)
-    setUpdatePassword("")
-    setPassword("")
-    setUpdatePasswordError(false)
-  }
-
 
   return (
     <Container>
@@ -297,20 +267,20 @@ function Header() {
               <form>
                 <InputLabel style={{marginBottom: "10px"}}>New username: </InputLabel>
                 <Input style={{width: "95%", marginBottom: "40px"}} onChange={e => setUpdateUsername(e.target.value)} value={updateUsername} type="text" label="new username" />
-                <Button variant="contained" color="primary" type="submit" onClick={e => changeUsername(e)}>Save</Button>
+                <Button variant="contained" color="primary" type="submit">Save</Button>
               </form>
             </DialogContent>
           </Dialog>
 
-          <Dialog open={changePasswordOpen} onClose={handleUpdatePasswordClose}>
+          <Dialog open={changePasswordOpen} onClose={e => setChangePasswordOpen(false)}>
             <DialogTitle>Change Password</DialogTitle>
             <DialogContent>
               <form>
                 <InputLabel style={{marginBottom: "10px"}}>Current password: </InputLabel>
-                <Input style={{width: "95%", marginBottom: "40px"}} type="password" onChange={e => setPassword(e.target.value)} value={password} error={updatePasswordError} label="current password" />
+                <Input style={{width: "95%", marginBottom: "40px"}} onChange={e => setPassword(e.target.value)} value={password} type="text" label="new username" />
                 <InputLabel>New password: </InputLabel>
-                <Input style={{width: "95%", marginBottom: "40px"}} type="password" onChange={e => setUpdatePassword(e.target.value)} value={updatePassword} label="new password" />
-                <Button variant="contained" color="primary" type="submit" onClick={e => changePassword(e)}>Save</Button>
+                <Input style={{width: "95%", marginBottom: "40px"}} nChange={e => setUpdatePassword(e.target.value)} value={updatePassword} />
+                <Button variant="contained" color="primary" type="submit">Save</Button>
               </form>
             </DialogContent>
           </Dialog>

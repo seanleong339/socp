@@ -86,6 +86,8 @@ function CommentsSection(props) {
     const [ comments, setComments ] = useState([])
     const [ logInOpen, setLogInOpen ] = useState(false)
     const [ signUpOpen, setSignUpOpen ] = useState(false)
+    const [ changeUsernameOpen, setChangeUsernameOpen ] = useState(false)
+    const [ changePasswordOpen, setChangePasswordOpen ] = useState(false)
 
     const [ commentPosted, setCommentPosted] = useState(false) // render useEffect when comment posted
     // sign up fields
@@ -115,6 +117,7 @@ function CommentsSection(props) {
               }
           })
           if (res.data.comments) {
+            console.log(res.data.comments)
             setComments(res.data.comments)
           }
       } 

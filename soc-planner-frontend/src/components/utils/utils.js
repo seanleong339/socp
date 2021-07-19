@@ -45,6 +45,6 @@ export const timeSince = (dateInput) => {
     const time = Math.floor(interval)
     return time === 1 ? time + " minute" : time + " minutes" 
   }
-  return Math.floor(seconds) + " seconds";
+  return "few seconds";
 
 }

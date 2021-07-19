@@ -1,13 +1,15 @@
 import React from 'react'
 import { useState, useEffect } from 'react'
 import styled from 'styled-components'
-import Comment from './Comment'
+import { timeSince } from './utils/utils'
 import { Dialog, DialogTitle, DialogContent, DialogContentText, makeStyles, TextField, Paper, IconButton, Button } from '@material-ui/core'
 import SendIcon from '@material-ui/icons/Send'
+import DeleteIcon from '@material-ui/icons/Delete'
 import axios from '../dbAxios'
 import { validateEmail } from './utils/utils'
 import { useSelector, useDispatch } from 'react-redux'
 import { setLogin, selectLogin } from '../features/login/loginSlice'
+
 
 const useStyles = makeStyles((theme) => ({
     creamPaper: {
@@ -82,12 +84,12 @@ function CommentsSection(props) {
 
     axios.defaults.withCredentials = true
 
+    const [ user, setUser ] = useState({})
+
     const [ input, setInput ] = useState('')
     const [ comments, setComments ] = useState([])
     const [ logInOpen, setLogInOpen ] = useState(false)
     const [ signUpOpen, setSignUpOpen ] = useState(false)
-    const [ changeUsernameOpen, setChangeUsernameOpen ] = useState(false)
-    const [ changePasswordOpen, setChangePasswordOpen ] = useState(false)
 
     const [ commentPosted, setCommentPosted] = useState(false) // render useEffect when comment posted
     // sign up fields
@@ -117,8 +119,13 @@ function CommentsSection(props) {
               }
           })
           if (res.data.comments) {
-            console.log(res.data.comments)
-            setComments(res.data.comments)
+            var updatedComments = [...res.data.comments]
+            updatedComments.map(comment => {
+                getUsernameFromEmail(comment.email).then(x => comment['username'] = x)
+            })
+            updatedComments.sort((first, second) => new Date(first.date) - new Date(second.date))
+            console.log(updatedComments)
+            setComments(updatedComments)
           }
       } 
       getComments()
@@ -134,6 +141,15 @@ function CommentsSection(props) {
         
     }, [])
 
+    useEffect(() => {
+        async function getUser() {
+            var user = await axios.get('/auth/user', {withCredentials: true})   
+            setUser(user)
+        }
+        getUser()
+        
+    })
+
     async function postComment(event) {
         event.preventDefault()
 
@@ -141,17 +157,26 @@ function CommentsSection(props) {
         // var day = dateObj.getDate()
         // var month = dateObj.getMonth() + 1
         // var year = dateObj.getFullYear()
-        var user = await axios.get('/auth/user', {withCredentials: true})
         const res = await axios.post('/comment/add', {
             plan: props.planID,
             text: input,
-            user: user.data.username,
+            email: user.data.email,
             date: dateObj
         }, {withCredentials: true})
 
 
         setInput('')
         setCommentPosted(true)
+    }
+
+    async function deleteComment(event, commentID) {
+        event.preventDefault()
+
+        setComments(comments.filter(comment => comment._id !== commentID))
+
+        const res = await axios.post('/comment/delete', {
+            id: commentID
+        }, { withCredentials: true})
     }
 
     async function register(event) {
@@ -201,17 +226,15 @@ function CommentsSection(props) {
             const res = await axios.post('/auth/login', {
                 email: logInEmail,
                 password: logInPassword
-            })
+            }, {withCredentials: true}).catch(e => e)
             if (res.data) {
-                console.log(res)
                 dispatch(setLogin(true))
+                handleDialogClose()
+            } else {
+                setLogInPasswordError(true)
+                setLogInEmailError(true)
             }
-            if (res.cookie) {
-                console.log(res.cookie)
-              } else {
-                console.log("RES COOKIE NOT FOUND")
-              }
-            handleDialogClose()
+
         }
 
     }
@@ -231,6 +254,13 @@ function CommentsSection(props) {
         setLogInEmailError(false)
         setSignUpSuccess(false)
     }
+
+    async function getUsernameFromEmail(email) {
+        const res = await axios.post('/auth/getname', {
+            email: email
+        }, {withCredentials: true})
+        return res.data
+    }
     
 
     return (
@@ -243,7 +273,20 @@ function CommentsSection(props) {
                             <>
                             { 
                                 comments.map(comment => (
-                                <Comment username={comment.user} comment={comment.text} date={comment.date} />
+                                <div>
+                                    <Username style={{color: user.data.email === comment.email ? "#00c6ff" : "white"}}><b>@{comment.username}</b> <TimeAgo>{timeSince(comment.date)} ago</TimeAgo></Username>
+                                    <CommentContent>
+                                        <UserComment>{comment.text}</UserComment>
+                                        {
+                                            user.data.email === comment.email ? 
+                                            <IconButton type="submit" title="Delete comment" size="small" onClick={e => deleteComment(e, comment._id)}><DeleteIcon style={{fill: "gray"}} /></IconButton> 
+                                            :
+                                            <span></span>
+                                        }
+                                    </CommentContent>
+            
+                                    <hr style={{color: 'gray'}} />
+                                </div>
                                 ))
                             }
                             </> 
@@ -275,7 +318,7 @@ function CommentsSection(props) {
                 <DialogContent>
                   <form>
                     <TextField error={logInEmailError} style={{width: '95%', marginBottom: '20px'}} onChange={e => setLogInEmail(e.target.value)} value={logInEmail} type="email" label="Email address" />
-                    <TextField error={logInPasswordError} style={{width: '95%', marginBottom: '20px'}} onChange={e => setLogInPassword(e.target.value)} value={logInPassword} type="password" label="Password" />
+                    <TextField error={logInPasswordError} style={{width: '95%', marginBottom: '20px'}} onChange={e => setLogInPassword(e.target.value)} value={logInPassword} type="password" label="Password" helperText={logInEmailError && logInPasswordError ? "Username or password is incorrect." : "" }/>
                     <Button variant="contained" onClick={e => logIn(e)} className={classes.signUpButton} style={{marginTop: '10px', marginLeft: '77%', marginBottom: '20px'}} type="submit" disableElevation>ENTER</Button>
                   </form>
                 </DialogContent>
@@ -336,5 +379,23 @@ const LoginPrompt = styled.p `
     border-radius: 5px;
     padding: 1% 2%;
     margin-top: 5%;
+`
+const Username = styled.p `
+    color: white;
+    font-size: 17px;
+    margin: 0.5% auto;
+`
+const UserComment = styled.span `
+    color: white;
+    font-size: 15px;
+`
+const TimeAgo = styled.span `
+    font-size: 13px;
+    color: #bebebe;
+`
+const CommentContent = styled.div `
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
 `
 export default CommentsSection

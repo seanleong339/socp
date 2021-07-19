@@ -29,7 +29,6 @@ class authCtrl {
 		}
 		const ans = {};
 		ans.login = false;
-		console.log(ans)
 		res.send(ans);
 	}
 

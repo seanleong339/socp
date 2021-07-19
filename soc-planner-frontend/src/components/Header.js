@@ -1,14 +1,14 @@
 import React from 'react'
 import styled from 'styled-components'
+import CloseIcon from '@material-ui/icons/Close'
 import { Link } from 'react-router-dom'
 import { useState, useEffect } from 'react'
-import { makeStyles, Input, InputLabel, Button, IconButton, Dialog, DialogTitle, DialogContent, DialogContentText, TextField, InputAdornment, Menu, MenuItem } from '@material-ui/core'
+import Alert from '@material-ui/lab/Alert'
+import { makeStyles, Input, InputLabel, Button, Collapse, Dialog, DialogTitle, DialogContent, DialogContentText, IconButton, TextField, Menu, MenuItem } from '@material-ui/core'
 import axios from '../dbAxios'
 import { validateEmail } from './utils/utils'
 import { useDispatch, useSelector } from 'react-redux'
 import { setLogin, selectLogin } from '../features/login/loginSlice'
-import Visibility from '@material-ui/icons/Visibility'
-import VisibilityOff from '@material-ui/icons/VisibilityOff'
 
 
 const useStyles = makeStyles((theme) => ({
@@ -57,13 +57,18 @@ function Header() {
 
   const [ username, setUsername ] = useState('')
   const [ updateUsername, setUpdateUsername ] = useState(username) 
+  const [ updateUsernameError, setUpdateUsernameError ] = useState(false)
+
   const [ password, setPassword ] = useState('')
   const [ updatePassword, setUpdatePassword ] = useState('')
   const [ updatePasswordError, setUpdatePasswordError ] = useState(false)
 
-  const [ anchorEl, setAnchorEl ] = useState(null)
+  // alert state for authentication
+  const [ alertOpen, setAlertOpen ] = useState(false)
+  const [ alertMessage, setAlertMessage ] = useState('')
 
-  // const [ passwordVisibility, setPasswordVisibility ] = useState(false)
+  // menu open/close state
+  const [ anchorEl, setAnchorEl ] = useState(null)
 
 
   // sign up fields
@@ -140,7 +145,7 @@ function Header() {
         setLogInEmailError(true)
     }
     if (logInPassword === "") {
-        setLogInPasswordError(false)
+        setLogInPasswordError(true)
     }
 
     if (logInPassword !== "" && logInEmail !== "" && validateEmail(logInEmail)) {
@@ -149,12 +154,17 @@ function Header() {
         const res = await axios.post('/auth/login', {
             email: logInEmail,
             password: logInPassword
-        }, {withCredentials: true})
+        }, {withCredentials: true}).catch(e => e)
+        console.log(res)
         if (res.data) {
             dispatch(setLogin(true))
+            handleDialogClose()
+        } else {
+          setLogInPasswordError(true)
+          setLogInEmailError(true)
         }
         
-        handleDialogClose()
+        
     }
 
   }
@@ -169,10 +179,22 @@ function Header() {
   }
 
   async function changeUsername(event) {
-    const res = await axios.post("/auth/changename", {
-      change: updateUsername 
-    }, { withCredentials: true })
-    setChangeUsernameOpen(false)
+    event.preventDefault()
+    if (updateUsername == "") {
+      setUpdateUsernameError(true)
+    } else {
+      const res = await axios.post("/auth/changename", {
+        change: updateUsername 
+      }, { withCredentials: true })
+      setChangeUsernameOpen(false)
+      setAnchorEl(null)
+      if (res.data) {
+        setAlertMessage("Username changed successfully")
+        setAlertOpen(true)
+        setUsername(updateUsername)
+      }
+    }
+    
   }
 
   async function changePassword(event) {
@@ -181,8 +203,11 @@ function Header() {
       password: password,
       change: updatePassword
     })
+    setAnchorEl(null)
     if (res.data.pass) {
+      setAlertMessage("Password changed successfully")
       setChangePasswordOpen(false)
+      setAlertOpen(true)
     } else {
       setUpdatePasswordError(true)
     }
@@ -215,6 +240,26 @@ function Header() {
 
   return (
     <Container>
+
+          <Collapse in={alertOpen} style={{position: 'absolute', marginLeft: "30%", width: "40%"}} >
+            <Alert
+              action={
+                <IconButton
+                  aria-label="close"
+                  color="inherit"
+                  size="small"
+                  onClick={() => {
+                    setAlertOpen(false);
+                  }}
+                >
+                  <CloseIcon />
+                </IconButton>
+              }
+            >
+              {alertMessage}
+            </Alert>
+          </Collapse>
+
       <Navbar>
         <Link style={{textDecoration: 'none'}} to="/">
           <Logo>
@@ -228,7 +273,7 @@ function Header() {
                 <DialogContent>
                   <form>
                     <TextField error={logInEmailError} style={{width: '95%', marginBottom: '20px'}} onChange={e => setLogInEmail(e.target.value)} value={logInEmail} type="email" label="Email address" />
-                    <TextField error={logInPasswordError} style={{width: '95%', marginBottom: '20px'}} onChange={e => setLogInPassword(e.target.value)} value={logInPassword} type="password" label="Password" />
+                    <TextField error={logInPasswordError} style={{width: '95%', marginBottom: '20px'}} onChange={e => setLogInPassword(e.target.value)} value={logInPassword} helperText={logInEmailError && logInPasswordError ? "Either username or password is incorrect." : "" } type="password" label="Password" />
                     <Button variant="contained" onClick={e => logIn(e)} className={classes.signUpButton} style={{marginTop: '10px', marginLeft: '77%', marginBottom: '20px'}} type="submit" disableElevation>ENTER</Button>
                   </form>
                 </DialogContent>
@@ -296,7 +341,7 @@ function Header() {
             <DialogContent>
               <form>
                 <InputLabel style={{marginBottom: "10px"}}>New username: </InputLabel>
-                <Input style={{width: "95%", marginBottom: "40px"}} onChange={e => setUpdateUsername(e.target.value)} value={updateUsername} type="text" label="new username" />
+                <TextField style={{width: "95%", marginBottom: "40px"}} error={updateUsernameError} label={updateUsernameError ? "Username cannot be empty" : "" } onChange={e => setUpdateUsername(e.target.value)} value={updateUsername} type="text" />
                 <Button variant="contained" color="primary" type="submit" onClick={e => changeUsername(e)}>Save</Button>
               </form>
             </DialogContent>
@@ -307,13 +352,15 @@ function Header() {
             <DialogContent>
               <form>
                 <InputLabel style={{marginBottom: "10px"}}>Current password: </InputLabel>
-                <Input style={{width: "95%", marginBottom: "40px"}} type="password" onChange={e => setPassword(e.target.value)} value={password} error={updatePasswordError} label="current password" />
+                <TextField style={{width: "95%", marginBottom: "40px"}} type="password" onChange={e => setPassword(e.target.value)} value={password} label={updatePasswordError ? "Wrong current password" : ""} error={updatePasswordError}  />
                 <InputLabel>New password: </InputLabel>
-                <Input style={{width: "95%", marginBottom: "40px"}} type="password" onChange={e => setUpdatePassword(e.target.value)} value={updatePassword} label="new password" />
+                <TextField style={{width: "95%", marginBottom: "40px"}} type="password" onChange={e => setUpdatePassword(e.target.value)} value={updatePassword} />
                 <Button variant="contained" color="primary" type="submit" onClick={e => changePassword(e)}>Save</Button>
               </form>
             </DialogContent>
           </Dialog>
+
+          
 
           {/* <Dialog open={userOpen} onClose={e => setUserOpen(false)}>
             <DialogTitle>Account Settings</DialogTitle>

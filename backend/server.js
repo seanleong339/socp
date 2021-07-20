@@ -10,6 +10,7 @@ const passport = require("passport")
 const authDAO = require("./dao/authDAO")
 const flash = require('connect-flash')
 const cookieParser = require('cookie-parser')
+require('dotenv').config()
 
 const app = express();
 
@@ -29,7 +30,10 @@ app.use(session({
     }),
     secret: "secret",
     resave: false,
-    saveUninitialized: false
+    saveUninitialized: false,
+    cookie: {
+        domain: 'socplanner.herokuapp.com' //process.env.COOKIE_DOMAIN
+    }
 }));
 app.use(flash());
 app.use(passport.initialize());

@@ -18,7 +18,7 @@ function SemesterPlan(props) {
                 fillModules.push(data)
             }
             Promise.all(fillModules).then(values => {
-              setModules([...modules, ...values])
+              setModules([...values])
               setLoading(false)
             })
         }
@@ -28,7 +28,7 @@ function SemesterPlan(props) {
         } else {
           setLoading(false)
         }
-    }, [])
+    }, [props.modules])
 
 
 

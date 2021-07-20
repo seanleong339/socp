@@ -33,25 +33,24 @@ const useStyles = makeStyles((theme) => ({
       {name: "Software Engineering", value: "software engineering"},
     ],
     'business analytics': [
-      {name: "General", value: null},
+      {name: "General", value: ""},
       {name: "Financial Analytics", value: "financial analytics"},
       {name: "Marketing Analytics", value: "marketing analytics"}
     ], 
     'information systems': [
-      {name: "General", value: null},
+      {name: "General", value: ""},
       {name: "Digital Innovation", value: "digital innovation"},
       {name: "Electronic Commerce", value: "electronic commerce"},
       {name: "Financial Technology", value: "financial technology"}
     ], 
     'information security': [
-      {name: "General", value: null},
+      {name: "General", value: ""},
     ]
   }
 
 function showSpecialisations(major) {
   return (
     <>
-    <option value="">All</option>
     { specialisations[major].map(x => (
       <option value={x.value}>{x.name}</option>
     ))
@@ -81,12 +80,21 @@ function ShowPlans() {
   
   useEffect(() => {
     async function getData() {
-      const studyPlanData = await axios.get(`/sample`)
+      let studyPlanData
+      if (major !== '') {
+        if (specialisation !== '') {
+          studyPlanData = await axios.get(`/sample?major=${major}&specialisation=${specialisation}`)
+        } else {
+          studyPlanData = await axios.get(`/sample?major=${major}`)
+        }
+      } else {
+        studyPlanData = await axios.get(`/sample`)
+      }
+      
       console.log(studyPlanData)
       setStudyPlans(studyPlanData.data.plans)
       let updatedNumComments = []
       studyPlanData.data.plans.map(plan => {
-        console.log(plan._id)
         updatedNumComments.push(axios.get('/comment', {
           params: {
             planid: plan._id
@@ -109,11 +117,11 @@ function ShowPlans() {
 
 
   async function filter(event) {
-    event.preventDefault()
+    event.preventDefault()  
 
     let studyPlanData
     if (major !== '') {
-      if (specialisation !== null) {
+      if (specialisation !== '') {
         studyPlanData = await axios.get(`/sample?major=${major}&specialisation=${specialisation}`)
       } else {
         studyPlanData = await axios.get(`/sample?major=${major}`)
@@ -121,8 +129,19 @@ function ShowPlans() {
     } else {
       studyPlanData = await axios.get(`/sample`)
     }
-    console.log(studyPlanData)
     setStudyPlans(studyPlanData.data.plans)
+    
+    let updatedNumComments = []
+    studyPlanData.data.plans.map(plan => {
+      updatedNumComments.push(axios.get('/comment', {
+        params: {
+          planid: plan._id
+        }
+      }))
+    })
+    Promise.all(updatedNumComments).then(values => (
+      values.map(comment => comment.data.comments.length)
+    )).then(values => setNumComments(values))
   }
 
   // update votes on the database
@@ -172,6 +191,19 @@ function ShowPlans() {
     }
   }
 
+  function onMajorChange(event) {
+    console.log(event.target.value)
+    if (event.target.value === "") {
+      setMajor("")
+      setSpecialisation("")
+    } else if (event.target.value === "computer science") {
+      setMajor("computer science")
+      setSpecialisation("artificial intelligence")
+    } else {
+      setMajor(event.target.value)
+    }
+  }
+
   function handlePopperClick(event) {
     setAnchorEl(anchorEl ? null : event.currentTarget)
   }
@@ -189,7 +221,7 @@ function ShowPlans() {
                 id="major"
                 data-testid="showplans_major"
                 value={major}
-                onChange={(e) => setMajor(e.target.value)}
+                onChange={onMajorChange}
                 required
               >
                 <option value="">All</option>
@@ -214,7 +246,7 @@ function ShowPlans() {
               disabled={major === "" || major === "information security"}>
                 {
                    (major === "" || major === "information security") 
-                   ? <option></option>
+                   ? <option value="">All</option>
                    : showSpecialisations(major)
                 }
 
@@ -222,7 +254,7 @@ function ShowPlans() {
   
             </Specialisation>
 
-            <FilterButton data-testid="showplans_filterButton" type="submit" onClick={filter}>
+            <FilterButton data-testid="showplans_filterButton" type="submit" onClick={e => filter(e)}>
               SHOW PLANS
             </FilterButton>
           </form>

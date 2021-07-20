@@ -23,7 +23,7 @@ class sampleController {
             filters: filters,
             totalresults: totalNumPlans,
         }
-        console.log(response)
+
         res.json(response)
     }
 

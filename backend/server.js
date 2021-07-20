@@ -32,7 +32,7 @@ app.use(session({
     resave: false,
     saveUninitialized: false,
     cookie: {
-        domain: 'socplanner.herokuapp.com' //process.env.COOKIE_DOMAIN
+        domain: 'herokuapp.com' //process.env.COOKIE_DOMAIN
     }
 }));
 app.use(flash());

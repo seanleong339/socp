@@ -24,16 +24,16 @@ app.use(express.json());
 app.use(cookieParser())
 app.use(express.urlencoded({extended: false}));
 app.use(session({
-    store: MongoStore.create({
-        mongoUrl: 'mongodb+srv://sean:Orbital2021@cluster0.kacq5.mongodb.net/myFirstDatabase?retryWrites=true&w=majority',
-        ttl: 24 * 60 * 60
-    }),
+  //  store: MongoStore.create({
+  //      mongoUrl: 'mongodb+srv://sean:Orbital2021@cluster0.kacq5.mongodb.net/myFirstDatabase?retryWrites=true&w=majority',
+  //      ttl: 24 * 60 * 60
+  //  }),
     secret: "secret",
     resave: false,
     saveUninitialized: false,
-    cookie: {
-        domain: 'herokuapp.com' //process.env.COOKIE_DOMAIN
-    }
+   // cookie: {
+   //     domain: 'herokuapp.com' //process.env.COOKIE_DOMAIN
+   // }
 }));
 app.use(flash());
 app.use(passport.initialize());

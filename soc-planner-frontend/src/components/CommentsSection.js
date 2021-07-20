@@ -120,12 +120,18 @@ function CommentsSection(props) {
           })
           if (res.data.comments) {
             var updatedComments = [...res.data.comments]
-            updatedComments.map(comment => {
-                getUsernameFromEmail(comment.email).then(x => comment['username'] = x)
+            Promise.all(updatedComments.map(comment => 
+                getUsernameFromEmail(comment.email)
+            ))
+            .then(values => {
+                values.map((username, index) => {
+                    updatedComments[index]['username'] = username
+                })
+                return updatedComments
+            }).then(values => {
+                values.sort((first, second) => new Date(first.date) - new Date(second.date))
+                setComments(values)
             })
-            updatedComments.sort((first, second) => new Date(first.date) - new Date(second.date))
-            console.log(updatedComments)
-            setComments(updatedComments)
           }
       } 
       getComments()
@@ -148,7 +154,7 @@ function CommentsSection(props) {
         }
         getUser()
         
-    })
+    }, [])
 
     async function postComment(event) {
         event.preventDefault()
@@ -269,7 +275,7 @@ function CommentsSection(props) {
                 <h4 style={{color: '#bebebe'}}>Discussion Thread</h4>
                 <Comments>
                     {
-                        comments.length > 0 ? 
+                        comments.length > 0 && user.data ? 
                             <>
                             { 
                                 comments.map(comment => (

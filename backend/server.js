@@ -13,7 +13,7 @@ const cookieParser = require('cookie-parser')
 const app = express();
 
 const corsOption = {
-    origin: ['http://localhost:3000', 'https://socplanner.herokuapp.com/'],
+    origin: ['http://localhost:3000', 'https://socplanner.herokuapp.com'],
     credentials: true
 }
 

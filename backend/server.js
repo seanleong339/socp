@@ -31,9 +31,10 @@ app.use(session({
     secret: "secret",
     resave: false,
     saveUninitialized: false,
-   // cookie: {
-   //     domain: 'herokuapp.com' //process.env.COOKIE_DOMAIN
-   // }
+    cookie: {
+        sameSite: 'none'
+        //domain: 'herokuapp.com' //process.env.COOKIE_DOMAIN
+    }
 }));
 app.use(flash());
 app.use(passport.initialize());

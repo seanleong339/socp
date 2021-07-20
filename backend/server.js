@@ -32,7 +32,8 @@ app.use(session({
     resave: false,
     saveUninitialized: false,
     cookie: {
-        sameSite: 'none'
+        sameSite: 'none',
+        secure: true
         //domain: 'herokuapp.com' //process.env.COOKIE_DOMAIN
     }
 }));

@@ -5,6 +5,7 @@ const user = require("./api/user.route")
 const comment = require("./api/comment.route")
 const auth = require("./api/auth.route")
 const session = require("express-session")
+const MongoStore = require("connect-mongo")
 const passport = require("passport")
 const authDAO = require("./dao/authDAO")
 const flash = require('connect-flash')
@@ -22,6 +23,10 @@ app.use(express.json());
 app.use(cookieParser())
 app.use(express.urlencoded({extended: false}));
 app.use(session({
+    store: MongoStore.create({
+        mongoUrl: 'mongodb+srv://sean:Orbital2021@cluster0.kacq5.mongodb.net/myFirstDatabase?retryWrites=true&w=majority',
+        ttl: 24 * 60 * 60
+    }),
     secret: "secret",
     resave: false,
     saveUninitialized: false

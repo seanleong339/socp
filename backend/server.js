@@ -32,8 +32,8 @@ app.use(session({
     resave: false,
     saveUninitialized: false,
     cookie: {
-        sameSite: 'none',
-        secure: true,
+        //sameSite: 'none',
+        //secure: true,
         domain: 'socplanner.herokuapp.com' //process.env.COOKIE_DOMAIN
     }
 }));

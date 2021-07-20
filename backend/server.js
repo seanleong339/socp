@@ -33,8 +33,8 @@ app.use(session({
     saveUninitialized: false,
     cookie: {
         sameSite: 'none',
-        secure: true
-        //domain: 'herokuapp.com' //process.env.COOKIE_DOMAIN
+        secure: true,
+        domain: 'socplanner.herokuapp.com' //process.env.COOKIE_DOMAIN
     }
 }));
 app.use(flash());

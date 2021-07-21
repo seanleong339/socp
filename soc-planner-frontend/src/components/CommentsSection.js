@@ -84,7 +84,7 @@ function CommentsSection(props) {
 
     axios.defaults.withCredentials = true
 
-    const [ user, setUser ] = useState({})
+    const [ userEmail, setUserEmail ] = useState('')
 
     const [ input, setInput ] = useState('')
     const [ comments, setComments ] = useState([])
@@ -117,11 +117,15 @@ function CommentsSection(props) {
               params: {
                   planid: props.planID
               }
-          })
+          }, {withCredentials: true})
           if (res.data.comments) {
             var updatedComments = [...res.data.comments]
-            Promise.all(updatedComments.map(comment => 
-                getUsernameFromEmail(comment.email)
+
+            Promise.all(updatedComments.map(comment => {
+                console.log(comment.email)
+                return getUsernameFromEmail(comment.email)
+            }
+                
             ))
             .then(values => {
                 values.map((username, index) => {
@@ -140,19 +144,23 @@ function CommentsSection(props) {
 
     useEffect(() => {
         async function checkLoggedIn() {
-          const res = await axios.get('/auth/check')
-          dispatch(setLogin(res.data))
+          if (localStorage.getItem("token") !== null) {
+            dispatch(setLogin(true))
+          } else {
+              dispatch(setLogin(false))
+          }
+          
         }
         checkLoggedIn()
         
     }, [])
 
     useEffect(() => {
-        async function getUser() {
-            var user = await axios.get('/auth/user', {withCredentials: true})   
-            setUser(user)
+        async function getUserEmail() {
+            var email = await axios.get('/auth/user', {headers: {Authorization: localStorage.getItem("token")}})   
+            setUserEmail(email.data.email)
         }
-        getUser()
+        getUserEmail()
         
     }, [])
 
@@ -166,9 +174,9 @@ function CommentsSection(props) {
         const res = await axios.post('/comment/add', {
             plan: props.planID,
             text: input,
-            email: user.data.email,
+            email: userEmail,
             date: dateObj
-        }, {withCredentials: true})
+        }, {headers: {Authorization: localStorage.getItem("token")}})
 
 
         setInput('')
@@ -182,7 +190,7 @@ function CommentsSection(props) {
 
         const res = await axios.post('/comment/delete', {
             id: commentID
-        }, { withCredentials: true})
+        }, { headers: {Authorization: localStorage.getItem("token")}})
     }
 
     async function register(event) {
@@ -206,7 +214,7 @@ function CommentsSection(props) {
             username: signUpUsername,
             password: signUpPassword,
             email: signUpEmail
-        }) 
+        }, {headers: {Authorization: localStorage.getItem("token")}}) 
         console.log(res)
         setSignUpEmail('')
         setSignUpPassword('')
@@ -232,7 +240,7 @@ function CommentsSection(props) {
             const res = await axios.post('/auth/login', {
                 email: logInEmail,
                 password: logInPassword
-            }, {withCredentials: true}).catch(e => e)
+            }, {headers: {Authorization: localStorage.getItem("token")}}).catch(e => e)
             if (res.data) {
                 dispatch(setLogin(true))
                 handleDialogClose()
@@ -264,7 +272,7 @@ function CommentsSection(props) {
     async function getUsernameFromEmail(email) {
         const res = await axios.post('/auth/getname', {
             email: email
-        }, {withCredentials: true})
+        }, {headers: {Authorization: localStorage.getItem("token")}})
         return res.data
     }
     
@@ -272,19 +280,19 @@ function CommentsSection(props) {
     return (
         <PaperStyled className={classes.creamPaper}>
             <Container>
-                <h4 style={{color: '#bebebe'}}>Discussion Thread</h4>
+                <h4 style={{color: '#bebebe'}} data-testid="commentsSection_header">Discussion Thread</h4>
                 <Comments>
                     {
-                        comments.length > 0 && user.data ? 
+                        comments.length > 0 ? 
                             <>
                             { 
                                 comments.map(comment => (
                                 <div>
-                                    <Username style={{color: user.data.email === comment.email ? "#00c6ff" : "white"}}><b>@{comment.username}</b> <TimeAgo>{timeSince(comment.date)} ago</TimeAgo></Username>
+                                    <Username style={{color: userEmail === comment.email ? "#00c6ff" : "white"}}><b>@{comment.username}</b> <TimeAgo>{timeSince(comment.date)} ago</TimeAgo></Username>
                                     <CommentContent>
                                         <UserComment>{comment.text}</UserComment>
                                         {
-                                            user.data.email === comment.email ? 
+                                            userEmail === comment.email ? 
                                             <IconButton type="submit" title="Delete comment" size="small" onClick={e => deleteComment(e, comment._id)}><DeleteIcon style={{fill: "gray"}} /></IconButton> 
                                             :
                                             <span></span>
@@ -297,7 +305,7 @@ function CommentsSection(props) {
                             }
                             </> 
                             :
-                            <p style={{color: '#bebebe', fontSize: '17px'}}>No comments yet.</p>
+                            <p style={{color: '#bebebe', fontSize: '17px'}} data-testid="commentsSection_noComments">No comments yet.</p>
                     }
                 </Comments>
                 

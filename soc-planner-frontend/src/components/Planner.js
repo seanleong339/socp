@@ -441,6 +441,7 @@ function Planner() {
             <SubmitButton
               type="button"
               aria-describedby={id} 
+              data-testid="planner_submitButton"
               onClick={handlePopperClick}
               >
               SUBMIT
@@ -453,6 +454,7 @@ function Planner() {
               open={open}
               anchorEl={anchorEl}
               placement={'bottom-start'}
+              data-testid="planner_popper"
               transition
             >
               {({ TransitionProps }) => (

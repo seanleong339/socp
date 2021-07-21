@@ -1,23 +1,25 @@
 import React from 'react'
 import ShowPlans from '../ShowPlans'
+import { Provider } from 'react-redux'
+import { store } from '../../app/store'
 import { fireEvent, render, waitFor } from '@testing-library/react'
 import { BrowserRouter } from 'react-router-dom'
 import '@testing-library/jest-dom'
 
 test("header shows correctly", () => {
-    const component = render(<ShowPlans />)
+    const component = render(<Provider store={store}><ShowPlans /></Provider>)
     const header = component.getByTestId("showplans_header")
     expect(header.textContent).toBe("Study Plans")
 })
 
 test("there is no filter for the major", () => {
-    const component = render(<ShowPlans />)
+    const component = render(<Provider store={store}><ShowPlans /></Provider>)
     const major = component.getByTestId("showplans_major")
     expect(major.value).toBe('')
 })
 
 test("there is no filter for the specialisation", () => {
-    const component = render(<ShowPlans />)
+    const component = render(<Provider store={store}><ShowPlans /></Provider>)
     const specialisation = component.getByTestId("showplans_specialisation")
     expect(specialisation.value).toBe('')
 })
@@ -25,7 +27,7 @@ test("there is no filter for the specialisation", () => {
 // user actions
 
 test("changing major filter works correctly", () => {
-    const component = render(<ShowPlans />)
+    const component = render(<Provider store={store}><ShowPlans /></Provider>)
     const major = component.getByTestId("showplans_major")
     fireEvent.change(major, {target: {value: "information security"}})
 
@@ -33,7 +35,7 @@ test("changing major filter works correctly", () => {
 })
 
 test("changing specialisation filter works correctly", () => {
-    const component = render(<ShowPlans />)
+    const component = render(<Provider store={store}><ShowPlans /></Provider>)
     const specialisation = component.getByTestId("showplans_specialisation")
     const major = component.getByTestId("showplans_major")
 
@@ -44,7 +46,7 @@ test("changing specialisation filter works correctly", () => {
 })
 
 test("upvoting plan works properly", () => {
-    const component = render(<BrowserRouter><ShowPlans /></BrowserRouter>)
+    const component = render(<Provider store={store}><BrowserRouter><ShowPlans /></BrowserRouter></Provider>)
     waitFor(() => {
         const upvotes = component.getAllByTestId("showplans_thumbsUpIcon")
         const firstUpvote = upvotes[0]
@@ -58,7 +60,7 @@ test("upvoting plan works properly", () => {
 }   )
 
 test("downvoting plan works properly", () => {
-    const component = render(<BrowserRouter><ShowPlans /></BrowserRouter>)
+    const component = render(<Provider store={store}><BrowserRouter><ShowPlans /></BrowserRouter></Provider>)
     waitFor(() => {
         const downvotes = component.findAllByTestId("showplans_thumbsDownIcon")
         const firstDownvote = downvotes[0]
@@ -73,7 +75,7 @@ test("downvoting plan works properly", () => {
 
 
 test("upvoting then downvoting works properly", () => {
-    const component = render(<BrowserRouter><ShowPlans /></BrowserRouter>)
+    const component = render(<Provider store={store}><BrowserRouter><ShowPlans /></BrowserRouter></Provider>)
 
     waitFor(() => {
         const downvotes = component.findAllByTestId("showplans_thumbsDownIcon")

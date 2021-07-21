@@ -100,9 +100,12 @@ function Header() {
 
   useEffect(() => {
     async function setUser() {
-      const res = await axios.get('/auth/user')
-      setUsername(res.data.username)
-      setUpdateUsername(res.data.username)
+      const emailRes = await axios.get('/auth/user', {headers: {Authorization: localStorage.getItem("token")}})
+      const email = emailRes.data.email
+      const usernameRes = await axios.post('/auth/getname', {email: email}, {headers: {Authorization: localStorage.getItem("token")}} )
+      console.log(usernameRes)
+      setUsername(usernameRes.data)
+      setUpdateUsername(usernameRes.data)
     }
     setUser()
   }, [useSelector(selectLogin)])
@@ -128,7 +131,7 @@ function Header() {
           username: signUpUsername,
           password: signUpPassword,
           email: signUpEmail
-      }) 
+      }, {headers: {Authorization: localStorage.getItem()}}) 
       console.log(res)
       setSignUpEmail('')
       setSignUpPassword('')
@@ -154,10 +157,11 @@ function Header() {
         const res = await axios.post('/auth/login', {
             email: logInEmail,
             password: logInPassword
-        }, {withCredentials: true}).catch(e => e)
+        }).catch(e => e)
         console.log(res)
-        if (res.data) {
+        if (res.data.success) {
             dispatch(setLogin(true))
+            localStorage.setItem("token", res.data.token)
             handleDialogClose()
         } else {
           setLogInPasswordError(true)
@@ -173,9 +177,8 @@ function Header() {
     event.preventDefault()
     setAnchorEl(null)
 
-    const res = axios.post('/auth/logout', {withCredentials: true})
+    localStorage.removeItem("token")
     dispatch(setLogin(false))
-    console.log(res)
   }
 
   async function changeUsername(event) {
@@ -185,7 +188,8 @@ function Header() {
     } else {
       const res = await axios.post("/auth/changename", {
         change: updateUsername 
-      }, { withCredentials: true })
+      }, {headers: {Authorization: localStorage.getItem("token")}})
+      
       setChangeUsernameOpen(false)
       setAnchorEl(null)
       if (res.data) {
@@ -193,6 +197,7 @@ function Header() {
         setAlertOpen(true)
         setUsername(updateUsername)
       }
+      console.log(res)
     }
     
   }
@@ -202,7 +207,7 @@ function Header() {
     const res = await axios.post("/auth/changepassword", {
       password: password,
       change: updatePassword
-    })
+    }, {headers: {Authorization: localStorage.getItem("token")}})
     setAnchorEl(null)
     if (res.data.pass) {
       setAlertMessage("Password changed successfully")

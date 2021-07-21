@@ -1,4 +1,5 @@
 const commentDao = require('../dao/commentDAO');
+const util = require("./util")
 
 class commentController {
   static async apiGetComments(req, res) {
@@ -25,7 +26,8 @@ class commentController {
   }
 
   static async apiRemoveComment(req, res) {
-    const user = req.user;
+    const token = req.header("Authorization").split(" ")
+    const user = util.readJWT(token);
     const result = commentDao.deleteComment(req.body.id, user.email);
     res.send(result);
   }

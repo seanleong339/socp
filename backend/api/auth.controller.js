@@ -1,5 +1,6 @@
 const bcrypt = require('bcrypt')
 const authDAO = require("../dao/authDAO")
+const util = require('./util')
 
 class authCtrl {
 	static async registerUser(req, res) {
@@ -41,7 +42,9 @@ class authCtrl {
 
 	static async changeUsername(req, res) {
 		const info = {};
-		info.user = req.user.email;
+		const token = req.header("Authorization").split(" ")
+		const decoded = util.readJWT(token)
+		info.user = decoded.email;
 		info.name = true;
 		info.change = req.body.change;
 		const result = await authDAO.changeUserinfo(info);
@@ -51,7 +54,9 @@ class authCtrl {
 	static async changePassword(req, res) {
 		const info = {};
 		info.password = true;
-		info.user = req.user.email;
+		const token = req.header("Authorization").split(" ")
+		const decoded = util.readJWT(token)
+		info.user = decoded.email;
 		info.change = req.body.change;
 		info.oldpassword = req.body.password;
 		console.log(info)

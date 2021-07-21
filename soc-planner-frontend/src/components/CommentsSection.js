@@ -226,32 +226,35 @@ function CommentsSection(props) {
 
     async function logIn(event) {
         event.preventDefault()
-
+    
         if (logInEmail === "" || !validateEmail(logInEmail)) {
             setLogInEmailError(true)
         }
         if (logInPassword === "") {
-            setLogInPasswordError(false)
+            setLogInPasswordError(true)
         }
-
+    
         if (logInPassword !== "" && logInEmail !== "" && validateEmail(logInEmail)) {
             setLogInEmailError(false)
             setLogInPasswordError(false)
             const res = await axios.post('/auth/login', {
                 email: logInEmail,
                 password: logInPassword
-            }, {headers: {Authorization: localStorage.getItem("token")}}).catch(e => e)
-            if (res.data) {
-                dispatch(setLogin(true))
-                handleDialogClose()
+            }).catch(e => e)
+            console.log(res)
+            if (res.data.success) {
+              localStorage.setItem("token", res.data.token)
+              dispatch(setLogin(true))
+              handleDialogClose()
             } else {
-                setLogInPasswordError(true)
-                setLogInEmailError(true)
+              setLogInPasswordError(true)
+              setLogInEmailError(true)
             }
-
+            
+            
         }
-
-    }
+    
+      }
 
     function handleDialogClose() {
         setSignUpOpen(false)

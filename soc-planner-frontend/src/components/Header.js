@@ -107,7 +107,13 @@ function Header() {
       setUsername(usernameRes.data)
       setUpdateUsername(usernameRes.data)
     }
-    setUser()
+    console.log("Triggered function")
+    
+    if (localStorage.getItem("token") !== null) { // if user logged in
+      console.log("Triggered")
+      setUser()
+    }
+    
   }, [useSelector(selectLogin)])
 
   async function register(event) {
@@ -131,7 +137,7 @@ function Header() {
           username: signUpUsername,
           password: signUpPassword,
           email: signUpEmail
-      }, {headers: {Authorization: localStorage.getItem()}}) 
+      }, {headers: {Authorization: localStorage.getItem("token")}}) 
       console.log(res)
       setSignUpEmail('')
       setSignUpPassword('')
@@ -160,9 +166,9 @@ function Header() {
         }).catch(e => e)
         console.log(res)
         if (res.data.success) {
-            dispatch(setLogin(true))
-            localStorage.setItem("token", res.data.token)
-            handleDialogClose()
+          localStorage.setItem("token", res.data.token)
+          dispatch(setLogin(true))
+          handleDialogClose()
         } else {
           setLogInPasswordError(true)
           setLogInEmailError(true)

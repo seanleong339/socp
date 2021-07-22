@@ -77,6 +77,7 @@ function Header() {
   const [ signUpPassword, setSignUpPassword ] = useState('')
 
   const [ signUpEmailError, setSignUpEmailError ] = useState(false)
+  const [ signUpEmailErrorMessage, setSignUpEmailErrorMessage ] = useState('')
   const [ signUpUsernameError, setSignUpUsernameError ] = useState(false)
   const [ signUpPasswordError, setSignUpPasswordError ] = useState(false)
 
@@ -127,6 +128,7 @@ function Header() {
     }
     if (signUpEmail === "" || !validateEmail(signUpEmail)) {
       setSignUpEmailError(true)
+      setSignUpEmailErrorMessage("Invalid email")
     }
 
     if (signUpUsername !== "" && signUpPassword !== "" && signUpEmail !== "" && validateEmail(signUpEmail)) {
@@ -139,10 +141,17 @@ function Header() {
           email: signUpEmail
       }, {headers: {Authorization: localStorage.getItem("token")}}) 
       console.log(res)
-      setSignUpEmail('')
-      setSignUpPassword('')
-      setSignUpUsername('')
-      setSignUpSuccess(res.data)
+
+      if (res.data === "email already in use") {
+        setSignUpEmailError(true)
+        setSignUpEmailErrorMessage("Email already in use")
+      } else {
+        setSignUpEmail('')
+        setSignUpPassword('')
+        setSignUpUsername('')
+        setSignUpSuccess(res.data)
+      }
+      
     }
     
   }
@@ -305,7 +314,7 @@ function Header() {
                     <DialogTitle><b>Sign Up For An Account</b></DialogTitle>
                     <DialogContent>
                         <form>
-                            <TextField error={signUpEmailError} value={signUpEmail} onChange={e => setSignUpEmail(e.target.value)} style={{width: '95%', marginBottom: '20px'}} type="email" label="Email address" />
+                            <TextField error={signUpEmailError} value={signUpEmail} onChange={e => setSignUpEmail(e.target.value)} style={{width: '95%', marginBottom: '20px'}} helperText={signUpEmailErrorMessage} type="email" label="Email address" helper="" />
                             <TextField error={signUpUsernameError} value={signUpUsername} onChange={e => setSignUpUsername(e.target.value)} style={{width: '95%', marginBottom: '20px'}} type="text" label="Provide a username" />
                             <TextField error={signUpPasswordError} value={signUpPassword} onChange={e => setSignUpPassword(e.target.value)} style={{width: '95%', marginBottom: '20px'}} type="password" label="Provide a password" />
                             <Button variant="contained" className={classes.signUpButton} style={{marginTop: '10px', marginLeft: '77%', marginBottom: '20px'}} type="submit" onClick={e => register(e)} disableElevation>ENTER</Button>

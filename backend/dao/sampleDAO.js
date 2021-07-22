@@ -24,18 +24,15 @@ class sampleDAO {
         plansPerPage = 30;
         let query
         if (filters) {
-            if (filters.major == "computer science") {
-                if ("specialisation" in filters) {
-                     query = {"specialisation": {$eq: filters["specialisation"]}}
-                }
-                else {
-                     query = {"major": {$eq: filters["major"]}}
-                }
-            }
-            else if ("major" in filters) {
+            if (filters.major) {
                 query = {"major": {$eq: filters["major"]}}
             }
+            if (filters.specialisation) {
+                query = {"specialisation": {$eq: filters["specialisation"]}}
+            }
         }
+
+        console.log(query)
 
         let cursor
 

@@ -155,7 +155,7 @@ function ShowPlans() {
         await axios.post('/sample/voting', {
           id: planID,
           value: -1
-        })
+        }, {headers: {Authorization: localStorage.getItem("token")}})
         } else if (buttonState[planID] === 0) { // plan currently no like/dislike
           const buttonStateClone = {...buttonState}
           buttonStateClone[planID] = 1
@@ -175,7 +175,7 @@ function ShowPlans() {
       await axios.post('/sample/voting', {
         id: planID,
         value: 1
-      })
+      }, {headers: {Authorization: localStorage.getItem("token")}})
       
     }
   }

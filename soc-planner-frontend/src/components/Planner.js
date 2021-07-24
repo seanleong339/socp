@@ -179,6 +179,12 @@ function Planner() {
       delete planCopy._id
       setPlan(planCopy)
     }
+
+    if (plan.votes) { // removes votes from imported plan
+      let planCopy = plan
+      delete planCopy.votes
+      setPlan(planCopy)
+    }
   }, [])
 
   useDeepCompareEffect(() => {

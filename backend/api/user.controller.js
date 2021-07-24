@@ -86,7 +86,7 @@ class userController {
             if (check.pass) {
                 let submission = req.query;
                 delete submission.submit;
-                console.log(submission);
+                console.log("SUBMISSION", submission);
                 const success = await sampleDAO.addPlan(submission);
                 if (success) {
                     res.send(true);

@@ -81,6 +81,7 @@ const useStyles = makeStyles((theme) => ({
 function CommentsSection(props) {
     const classes = useStyles()
     const dispatch = useDispatch()
+    const select = useSelector(selectLogin)
 
     axios.defaults.withCredentials = true
 
@@ -123,7 +124,6 @@ function CommentsSection(props) {
             var updatedComments = [...res.data.comments]
 
             Promise.all(updatedComments.map(comment => {
-                console.log(comment.email)
                 return getUsernameFromEmail(comment.email)
             }
                 
@@ -148,7 +148,7 @@ function CommentsSection(props) {
           if (localStorage.getItem("token") !== null) {
             dispatch(setLogin(true))
           } else {
-              dispatch(setLogin(false))
+            dispatch(setLogin(false))
           }
           
         }
@@ -158,12 +158,16 @@ function CommentsSection(props) {
 
     useEffect(() => {
         async function getUserEmail() {
-            var email = await axios.get('/auth/user', {headers: {Authorization: localStorage.getItem("token")}})   
-            setUserEmail(email.data.email)
+            if (localStorage.getItem("token") !== null) {
+                var email = await axios.get('/auth/user', {headers: {Authorization: localStorage.getItem("token")}})   
+                console.log("user email", email)
+                setUserEmail(email.data.email)
+            }
+            
         }
         getUserEmail()
         
-    }, [])
+    }, [select])
 
     async function postComment(event) {
         event.preventDefault()
@@ -297,11 +301,11 @@ function CommentsSection(props) {
                             { 
                                 comments.map(comment => (
                                 <div>
-                                    <Username style={{color: userEmail === comment.email ? "#00c6ff" : "white"}}><b>@{comment.username}</b> <TimeAgo>{timeSince(comment.date)} ago</TimeAgo></Username>
+                                    <Username style={{color: (select && userEmail === comment.email) ? "#00c6ff" : "white"}}><b>@{comment.username}</b> <TimeAgo>{timeSince(comment.date)} ago</TimeAgo></Username>
                                     <CommentContent>
                                         <UserComment>{comment.text}</UserComment>
                                         {
-                                            userEmail === comment.email ? 
+                                            (select && userEmail === comment.email) ? 
                                             <IconButton type="submit" title="Delete comment" size="small" onClick={e => deleteComment(e, comment._id)}><DeleteIcon style={{fill: "gray"}} /></IconButton> 
                                             :
                                             <span></span>
@@ -321,7 +325,7 @@ function CommentsSection(props) {
                 
                     
                     {
-                        useSelector(selectLogin) ? 
+                        select ? 
                         <CommentForm> 
                             <TextField size="small" placeholder="Type a comment..." variant="outlined" className={classes.formInput} InputProps={{ className: classes.textInput}} value={input} onChange={e => setInput(e.target.value)} /> 
                             <IconButton title="Send Comment" type="submit" onClick={postComment} >

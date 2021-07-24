@@ -61,6 +61,7 @@ function Header() {
 
   const [ password, setPassword ] = useState('')
   const [ updatePassword, setUpdatePassword ] = useState('')
+  const [ currentPasswordError, setCurrentPasswordError ] = useState(false)
   const [ updatePasswordError, setUpdatePasswordError ] = useState(false)
 
   // alert state for authentication
@@ -104,14 +105,11 @@ function Header() {
       const emailRes = await axios.get('/auth/user', {headers: {Authorization: localStorage.getItem("token")}})
       const email = emailRes.data.email
       const usernameRes = await axios.post('/auth/getname', {email: email}, {headers: {Authorization: localStorage.getItem("token")}} )
-      console.log(usernameRes)
       setUsername(usernameRes.data)
       setUpdateUsername(usernameRes.data)
     }
-    console.log("Triggered function")
     
     if (localStorage.getItem("token") !== null) { // if user logged in
-      console.log("Triggered")
       setUser()
     }
     
@@ -207,6 +205,7 @@ function Header() {
       
       setChangeUsernameOpen(false)
       setAnchorEl(null)
+      setUpdateUsernameError(false)
       if (res.data) {
         setAlertMessage("Username changed successfully")
         setAlertOpen(true)
@@ -219,18 +218,25 @@ function Header() {
 
   async function changePassword(event) {
     event.preventDefault()
-    const res = await axios.post("/auth/changepassword", {
-      password: password,
-      change: updatePassword
-    }, {headers: {Authorization: localStorage.getItem("token")}})
-    setAnchorEl(null)
-    if (res.data.pass) {
-      setAlertMessage("Password changed successfully")
-      setChangePasswordOpen(false)
-      setAlertOpen(true)
-    } else {
+
+    if (updatePassword === "") {
       setUpdatePasswordError(true)
+    } else {
+      const res = await axios.post("/auth/changepassword", {
+        password: password,
+        change: updatePassword
+      }, {headers: {Authorization: localStorage.getItem("token")}})
+      setAnchorEl(null)
+      if (res.data.pass) {
+        setAlertMessage("Password changed successfully")
+        setChangePasswordOpen(false)
+        setAlertOpen(true)
+      } else {
+        setCurrentPasswordError(true)
+      }
     }
+
+    
       
   }
 
@@ -254,7 +260,22 @@ function Header() {
     setChangePasswordOpen(false)
     setUpdatePassword("")
     setPassword("")
+    setCurrentPasswordError(false)
     setUpdatePasswordError(false)
+  }
+
+  function handleUpdatePasswordOpen(event) {
+    setChangePasswordOpen(true)
+    setCurrentPasswordError(false)
+    setUpdatePasswordError(false)
+    setPassword("")
+    setUpdatePassword("")
+  }
+
+  function handleUpdateUsernameClose(event) {
+    setChangeUsernameOpen(false)
+    setUpdateUsername(username)
+    setUpdateUsernameError(false)
   }
 
 
@@ -343,7 +364,7 @@ function Header() {
                   open={Boolean(anchorEl)}
                   onClose={() => setAnchorEl(null)}>
                   <MenuItem onClick={() => setChangeUsernameOpen(true)}>Change username</MenuItem>
-                  <MenuItem onClick={() => setChangePasswordOpen(true)}>Change password</MenuItem><hr/>
+                  <MenuItem onClick={handleUpdatePasswordOpen}>Change password</MenuItem><hr/>
                   <MenuItem onClick={e => logOut(e)}>Log Out</MenuItem>
                 </Menu>
               </>
@@ -356,7 +377,7 @@ function Header() {
             
           </AccountButtons>
 
-          <Dialog open={changeUsernameOpen} onClose={e => setChangeUsernameOpen(false)}>
+          <Dialog open={changeUsernameOpen} onClose={handleUpdateUsernameClose}>
             <DialogTitle>Change Username</DialogTitle>
             <DialogContent>
               <form>
@@ -372,9 +393,9 @@ function Header() {
             <DialogContent>
               <form>
                 <InputLabel style={{marginBottom: "10px"}}>Current password: </InputLabel>
-                <TextField style={{width: "95%", marginBottom: "40px"}} type="password" onChange={e => setPassword(e.target.value)} value={password} label={updatePasswordError ? "Wrong current password" : ""} error={updatePasswordError}  />
+                <TextField style={{width: "95%", marginBottom: "40px"}} type="password" onChange={e => setPassword(e.target.value)} value={password} label={currentPasswordError ? "Wrong current password" : ""} error={currentPasswordError}  />
                 <InputLabel>New password: </InputLabel>
-                <TextField style={{width: "95%", marginBottom: "40px"}} type="password" onChange={e => setUpdatePassword(e.target.value)} value={updatePassword} />
+                <TextField style={{width: "95%", marginBottom: "40px"}} type="password" onChange={e => setUpdatePassword(e.target.value)} value={updatePassword} label={updatePasswordError ? "Password cannot be empty" : ""} error={updatePasswordError} />
                 <Button variant="contained" color="primary" type="submit" onClick={e => changePassword(e)}>Save</Button>
               </form>
             </DialogContent>

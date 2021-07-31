@@ -73,7 +73,7 @@ function Semester(props) {
         return moduleData
       }
 
-      if (props.mods.length > 0) { // if plan is in local storage
+      if (props.mods && props.mods.length > 0) { // if plan is in local storage
         const promises = []
         setLoading(true)
         for (let i = 0; i < props.mods.length; i++) {

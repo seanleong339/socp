@@ -13,7 +13,7 @@ const PUB_KEY = fs.readFileSync(pathToKey, 'utf8')
 
 const router = express.Router();
 
-router.route("/register").post(authCtrl.checkNotAuthenticated, authCtrl.registerUser);
+router.route("/register").post(authCtrl.registerUser);
 
 router.route("/login").post(async (req, res, next) => {
 
@@ -49,12 +49,6 @@ router.route("/login").post(async (req, res, next) => {
 			reason: e
 		}) ;
 	}
-});
-
-router.route("/logout").post(authCtrl.checkAuthenticated, (req, res) => {
-	req.logOut()
-	console.log('logged out')
-	res.redirect('/sample')
 });
 
 router.route("/check").get((req, res) => {

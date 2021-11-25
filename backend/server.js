@@ -15,7 +15,7 @@ require('dotenv').config()
 const app = express();
 
 const corsOption = {
-    origin: ['http://localhost:3000', 'https://socplanner.herokuapp.com'],
+    origin: ['http://localhost:3000', 'https://socp2.herokuapp.com'],
     credentials: true
 }
 

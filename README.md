@@ -15,3 +15,4 @@ However, creating an account will provide you with these additional features:
 3. Rating submitted module plans
 
 Try out SoCPlanner [here](https://socp2.herokuapp.com/)
+(The application might take a few minutes to startup due to Heroku's policy.)
